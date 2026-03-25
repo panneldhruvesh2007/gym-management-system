@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}{% if edit_mode %}Edit Trainer{% else %}Add Trainer{% endif %}{% endblock %}
+{% block page_title %}{% if edit_mode %}Edit Trainer{% else %}Add New Trainer{% endif %}{% endblock %}
+
+{% block content %}
+<form method="POST" enctype="multipart/form-data" style="max-width:700px;margin:0 auto;">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-dumbbell" style="color:var(--primary);margin-right:8px;"></i>Trainer Details</span>
+    </div>
+    <div class="card-body">
+      <!-- Photo -->
+      <div class="form-group" style="text-align:center;margin-bottom:28px;">
+        <div style="width:100px;height:100px;margin:0 auto 12px;border-radius:50%;overflow:hidden;border:3px solid var(--primary);background:var(--bg-card2);display:flex;align-items:center;justify-content:center;font-size:36px;">
+          {% if edit_mode and trainer.photo %}
+            <img id="photo-preview" src="{{ url_for('static', filename='uploads/trainers/' + (trainer.photo or '')) }}" style="width:100%;height:100%;object-fit:cover;">
+          {% else %}
+            <img id="photo-preview" src="" style="width:100%;height:100%;object-fit:cover;display:none;">
+            <span id="photo-placeholder">🏋️</span>
+          {% endif %}
+        </div>
+        <label class="btn btn-secondary btn-sm" style="cursor:pointer;">
+          <i class="fas fa-camera"></i> Upload Photo
+          <input type="file" name="photo" accept="image/*" data-preview="photo-preview" style="display:none;" onchange="document.getElementById('photo-placeholder')&&(document.getElementById('photo-placeholder').style.display='none')">
+        </label>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Full Name *</label>
+          <input type="text" name="full_name" class="form-control" required value="{{ trainer.full_name if edit_mode else '' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Specialization</label>
+          <input type="text" name="specialization" class="form-control" placeholder="e.g. Strength & Conditioning" value="{{ trainer.specialization if edit_mode else '' }}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Phone *</label>
+          <input type="tel" name="phone" class="form-control" required value="{{ trainer.phone if edit_mode else '' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-control" value="{{ trainer.email if edit_mode else '' }}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Experience (Years)</label>
+          <input type="number" name="experience_years" class="form-control" min="0" value="{{ trainer.experience_years if edit_mode else 0 }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Monthly Salary ({{ settings.currency }})</label>
+          <input type="number" name="salary" class="form-control" step="0.01" value="{{ trainer.salary if edit_mode else '' }}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Join Date *</label>
+          <input type="date" name="join_date" class="form-control" required value="{{ trainer.join_date if edit_mode else '' }}">
+        </div>
+        {% if edit_mode %}
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select name="is_active" class="form-control">
+            <option value="1" {% if trainer.is_active %}selected{% endif %}>Active</option>
+            <option value="0" {% if not trainer.is_active %}selected{% endif %}>Inactive</option>
+          </select>
+        </div>
+        {% endif %}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bio / About</label>
+        <textarea name="bio" class="form-control" rows="3" placeholder="Brief description of trainer's expertise...">{{ trainer.bio if edit_mode else '' }}</textarea>
+      </div>
+
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;">
+          <i class="fas fa-save"></i> {% if edit_mode %}Update Trainer{% else %}Add Trainer{% endif %}
+        </button>
+        <a href="{{ url_for('trainers') }}" class="btn btn-secondary"><i class="fas fa-times"></i> Cancel</a>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}

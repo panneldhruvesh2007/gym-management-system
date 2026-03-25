@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit Plan' if edit_mode else 'Create Plan' }}{% endblock %}
+{% block breadcrumb %}{{ 'Edit Plan' if edit_mode else 'Create Plan' }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title-group">
+    <h1 class="page-title">{{ 'EDIT' if edit_mode else 'CREATE' }} <span>PLAN</span></h1>
+  </div>
+  <a href="{{ url_for('plans') }}" class="btn btn-secondary"><i class="fa-solid fa-arrow-left"></i> Back</a>
+</div>
+
+<div style="max-width:640px;">
+  <form method="POST" data-loading>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title"><div class="card-icon">📋</div> Plan Details</div>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <label class="form-label">Plan Name <span class="required">*</span></label>
+          <input type="text" name="plan_name" class="form-control" required
+            value="{{ plan.plan_name if edit_mode else '' }}" placeholder="e.g. Monthly Basic, Annual Platinum">
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Duration <span class="required">*</span></label>
+            <select name="duration_months" class="form-select" required>
+              <option value="1" {{ 'selected' if edit_mode and plan.duration_months == 1 }}>1 Month</option>
+              <option value="2" {{ 'selected' if edit_mode and plan.duration_months == 2 }}>2 Months</option>
+              <option value="3" {{ 'selected' if edit_mode and plan.duration_months == 3 }}>3 Months</option>
+              <option value="6" {{ 'selected' if edit_mode and plan.duration_months == 6 }}>6 Months</option>
+              <option value="12" {{ 'selected' if edit_mode and plan.duration_months == 12 }}>1 Year</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Price (₹) <span class="required">*</span></label>
+            <div class="input-group">
+              <span class="input-group-text">₹</span>
+              <input type="number" name="price" class="form-control" required min="0" step="0.01"
+                value="{{ plan.price if edit_mode else '' }}" placeholder="0.00">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea name="description" class="form-control" rows="2" placeholder="Brief description of this plan">{{ plan.description if edit_mode else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Features</label>
+          <textarea name="features" class="form-control" rows="3"
+            placeholder="Gym Access,Locker Room,All Equipment,Personal Training">{{ plan.features if edit_mode else '' }}</textarea>
+          <p class="form-hint">Enter features separated by commas</p>
+        </div>
+
+        <div style="display:flex;gap:12px;">
+          <button type="submit" class="btn btn-primary" style="flex:1;">
+            <i class="fa-solid fa-floppy-disk"></i>
+            {{ 'Update Plan' if edit_mode else 'Create Plan' }}
+          </button>
+          <a href="{{ url_for('plans') }}" class="btn btn-ghost">Cancel</a>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

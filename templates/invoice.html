@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice {{ payment.invoice_number }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background: #f0f2f8; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 20px; }
+    .invoice-actions { display: flex; gap: 12px; margin-bottom: 20px; }
+    .invoice-wrapper {
+      background: white;
+      color: #1a1a2e;
+      max-width: 800px;
+      width: 100%;
+      padding: 48px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+      border-radius: 12px;
+    }
+    .inv-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; border-bottom: 2px solid #FF6B00; padding-bottom: 24px; }
+    .inv-logo { font-family: 'Bebas Neue', cursive; font-size: 28px; color: #FF6B00; letter-spacing: 2px; }
+    .inv-logo-sub { font-size: 11px; color: #666; letter-spacing: 2px; text-transform: uppercase; }
+    .inv-title { text-align: right; }
+    .inv-title h1 { font-size: 36px; font-weight: 900; color: #1a1a2e; letter-spacing: 3px; text-transform: uppercase; }
+    .inv-title .inv-num { font-size: 14px; color: #FF6B00; font-weight: 600; }
+    .inv-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px; }
+    .inv-party-label { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #999; margin-bottom: 8px; }
+    .inv-party-name { font-size: 18px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+    .inv-party-info { font-size: 13px; color: #555; line-height: 1.7; }
+    .inv-details { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; background: #f8f9ff; border-radius: 8px; padding: 20px; margin-bottom: 32px; }
+    .inv-detail-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #999; margin-bottom: 4px; }
+    .inv-detail-val { font-size: 14px; font-weight: 600; color: #1a1a2e; }
+    .inv-table { width: 100%; border-collapse: collapse; margin-bottom: 32px; }
+    .inv-table th { background: #1a1a2e; color: white; padding: 12px 16px; text-align: left; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; }
+    .inv-table td { padding: 14px 16px; border-bottom: 1px solid #eee; font-size: 14px; color: #333; }
+    .inv-totals { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+    .inv-total-row { display: flex; gap: 32px; font-size: 14px; color: #555; }
+    .inv-total-row.grand { font-size: 20px; font-weight: 800; color: #1a1a2e; padding-top: 12px; border-top: 2px solid #FF6B00; margin-top: 4px; }
+    .inv-total-row.grand span:last-child { color: #FF6B00; }
+    .inv-footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: flex-end; }
+    .inv-status { padding: 8px 24px; border-radius: 20px; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+    .inv-status.paid { background: rgba(0,208,132,0.1); color: #00D084; border: 1px solid rgba(0,208,132,0.3); }
+    .inv-status.pending { background: rgba(255,179,71,0.1); color: #FFB347; border: 1px solid rgba(255,179,71,0.3); }
+    .inv-barcode { font-size: 36px; letter-spacing: 4px; color: #1a1a2e; }
+    @media print {
+      body { background: white; padding: 0; }
+      .invoice-actions { display: none; }
+      .invoice-wrapper { box-shadow: none; border-radius: 0; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Actions (no-print) -->
+  <div class="invoice-actions no-print">
+    <button onclick="window.print()" class="btn btn-primary" style="background:#FF6B00;color:white;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:8px;">
+      <i class="fas fa-print"></i> Print Invoice
+    </button>
+    <button onclick="downloadInvoice()" class="btn btn-primary" style="background:#4DA6FF;color:white;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:8px;">
+      <i class="fas fa-download"></i> Download PDF
+    </button>
+    <a href="{{ url_for('payments') if session.role == 'admin' else url_for('member_invoices') }}" style="background:#1a1a2e;color:white;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:8px;text-decoration:none;">
+      <i class="fas fa-arrow-left"></i> Back
+    </a>
+  </div>
+
+  <div class="invoice-wrapper">
+    <!-- Header -->
+    <div class="inv-header">
+      <div style="display:flex;align-items:center;gap:16px;">
+        {% if settings.gym_logo %}
+          <div style="width:60px;height:60px;border-radius:50%;overflow:hidden;border:2px solid #4DA6FF;flex-shrink:0;">
+            <img src="{{ url_for('static', filename='uploads/' + settings.gym_logo) }}" style="width:100%;height:100%;object-fit:cover;">
+          </div>
+        {% else %}
+          <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#4DA6FF,#9B59B6);display:flex;align-items:center;justify-content:center;font-size:28px;color:white;flex-shrink:0;">
+            💪
+          </div>
+        {% endif %}
+        <div>
+          <div class="inv-logo">{{ settings.gym_name }}</div>
+          <div class="inv-logo-sub">Gym Management System</div>
+          <div style="font-size:12px;color:#666;margin-top:8px;line-height:1.6;">
+            {{ settings.gym_address }}<br>
+            📞 {{ settings.gym_phone }}<br>
+            ✉ {{ settings.gym_email }}
+          </div>
+        </div>
+      </div>
+      <div class="inv-title">
+        <h1>Invoice</h1>
+        <div class="inv-num">{{ payment.invoice_number }}</div>
+      </div>
+    </div>
+
+    <!-- Parties -->
+    <div class="inv-parties">
+      <div>
+        <div class="inv-party-label">Bill To</div>
+        {% if member %}
+        <div class="inv-party-name">{{ member.full_name }}</div>
+        <div class="inv-party-info">
+          ID: {{ member.member_id }}<br>
+          📞 {{ member.phone }}<br>
+          {% if member.email %}✉ {{ member.email }}<br>{% endif %}
+          {% if member.address %}📍 {{ member.address }}{% endif %}
+        </div>
+        {% endif %}
+      </div>
+      <div>
+        <div class="inv-party-label">Payment Info</div>
+        <div class="inv-detail-label">Issue Date</div>
+        <div class="inv-detail-val" style="margin-bottom:8px;">{{ payment.payment_date }}</div>
+        <div class="inv-detail-label">Valid Period</div>
+        <div class="inv-detail-val">{{ payment.valid_from }} → {{ payment.valid_to }}</div>
+        <div style="margin-top:12px;">
+          <span class="inv-status {{ payment.payment_status }}">{{ payment.payment_status | upper }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invoice Details Bar -->
+    <div class="inv-details">
+      <div>
+        <div class="inv-detail-label">Payment Mode</div>
+        <div class="inv-detail-val">{{ payment.payment_mode }}</div>
+      </div>
+      <div>
+        <div class="inv-detail-label">Membership Plan</div>
+        <div class="inv-detail-val">{{ plan.plan_name if plan else 'N/A' }}</div>
+      </div>
+      <div>
+        <div class="inv-detail-label">Assigned Trainer</div>
+        <div class="inv-detail-val">{{ trainer.full_name if trainer else 'Not Assigned' }}</div>
+      </div>
+    </div>
+
+    <!-- Items Table -->
+    <table class="inv-table">
+      <thead>
+        <tr>
+          <th>#</th><th>Description</th><th>Duration</th><th>Rate</th><th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>
+            <strong>{{ plan.plan_name if plan else 'Gym Membership' }}</strong><br>
+            <small style="color:#888;">Valid: {{ payment.valid_from }} to {{ payment.valid_to }}</small>
+          </td>
+          <td>{{ plan.duration_months if plan else 1 }} Month(s)</td>
+          <td>{{ settings.currency }}{{ payment.amount|int }}</td>
+          <td>{{ settings.currency }}{{ payment.amount|int }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Totals -->
+    <div class="inv-totals">
+      <div class="inv-total-row">
+        <span>Subtotal:</span>
+        <span>{{ settings.currency }}{{ payment.amount|int }}</span>
+      </div>
+      {% if payment.discount %}
+      <div class="inv-total-row" style="color:#FF4444;">
+        <span>Discount:</span>
+        <span>- {{ settings.currency }}{{ payment.discount|int }}</span>
+      </div>
+      {% endif %}
+      <div class="inv-total-row grand">
+        <span>TOTAL DUE:</span>
+        <span>{{ settings.currency }}{{ payment.net_amount|int }}</span>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="inv-footer">
+      <div>
+        <div style="font-size:12px;color:#999;margin-bottom:8px;">Thank you for choosing {{ settings.gym_name }}!</div>
+        <div style="font-size:11px;color:#bbb;">This is a computer-generated invoice. No signature required.</div>
+        {% if payment.notes %}<div style="font-size:12px;color:#666;margin-top:8px;">Note: {{ payment.notes }}</div>{% endif %}
+      </div>
+      <div>
+        <div class="inv-barcode">||| {{ payment.invoice_number[-3:] }} |||</div>
+        <div style="font-size:10px;color:#bbb;text-align:right;margin-top:4px;">{{ payment.invoice_number }}</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+function downloadInvoice() {
+  // Use browser's print to PDF functionality
+  window.print();
+}
+</script>
+</body>
+</html>

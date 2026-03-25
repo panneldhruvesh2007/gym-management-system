@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% block title %}Membership Plans{% endblock %}
+{% block page_title %}Membership Plans{% endblock %}
+
+{% block content %}
+{% if session.role == 'admin' %}
+<div style="margin-bottom:24px;">
+  <button class="btn btn-primary" onclick="openModal('add-plan-modal')"><i class="fas fa-plus"></i> Create New Plan</button>
+</div>
+{% endif %}
+
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:24px;">
+  {% for plan in plans %}
+  <div class="plan-card {% if plan.duration_months == 12 %}featured{% endif %} animate-slide-up" style="animation-delay:{{ loop.index0 * 0.1 }}s;">
+    {% if plan.duration_months == 12 %}<div class="plan-badge-featured">⭐ Best Value</div>{% endif %}
+    <div style="font-family:'Rajdhani',sans-serif;font-size:17px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">{{ plan.plan_name }}</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">{{ plan.description }}</div>
+    <div class="plan-price"><span>{{ settings.currency }}</span>{{ plan.price|int }}</div>
+    <div class="plan-duration">per {{ plan.duration_months }} month{% if plan.duration_months > 1 %}s{% endif %}</div>
+
+    <div class="plan-features" style="margin:20px 0;">
+      {% for feature in plan.features.split(',') %}
+      <div class="plan-feature"><i class="fas fa-check"></i> {{ feature.strip() }}</div>
+      {% endfor %}
+    </div>
+
+    {% if session.role == 'admin' %}
+    <div style="display:flex;gap:8px;margin-top:auto;">
+      <button class="btn btn-outline btn-sm" style="flex:1;" onclick='editPlan({{ plan | tojson }})'>
+        <i class="fas fa-edit"></i> Edit
+      </button>
+      <form method="POST" action="{{ url_for('delete_plan', plan_id=plan.id) }}" data-confirm="Delete {{ plan.plan_name }}?">
+        <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+      </form>
+    </div>
+    {% endif %}
+
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border-light);font-size:11px;color:var(--text-muted);text-align:center;">
+      <span class="badge {% if plan.is_active %}badge-active{% else %}badge-expired{% endif %}">{% if plan.is_active %}Active{% else %}Inactive{% endif %}</span>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Add Plan Modal -->
+<div class="modal-overlay" id="add-plan-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Create Membership Plan</span>
+      <button class="modal-close" onclick="closeModal('add-plan-modal')"><i class="fas fa-times"></i></button>
+    </div>
+    <form method="POST" action="{{ url_for('add_plan') }}">
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Plan Name *</label>
+            <input type="text" name="plan_name" class="form-control" required placeholder="e.g. Monthly Basic">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Duration (Months) *</label>
+            <select name="duration_months" class="form-control" required>
+              <option value="1">1 Month</option>
+              <option value="3">3 Months</option>
+              <option value="6">6 Months</option>
+              <option value="12">12 Months (1 Year)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Price ({{ settings.currency }}) *</label>
+            <input type="number" name="price" class="form-control" required step="0.01" placeholder="0.00">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select name="is_active" class="form-control">
+              <option value="1">Active</option>
+              <option value="0">Inactive</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <input type="text" name="description" class="form-control" placeholder="Brief plan description">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Features (comma-separated)</label>
+          <textarea name="features" class="form-control" rows="3" placeholder="Gym Access,Locker Room,Equipment,PT Sessions"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('add-plan-modal')">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Create Plan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Plan Modal -->
+<div class="modal-overlay" id="edit-plan-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Edit Plan</span>
+      <button class="modal-close" onclick="closeModal('edit-plan-modal')"><i class="fas fa-times"></i></button>
+    </div>
+    <form method="POST" id="edit-plan-form">
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Plan Name *</label>
+            <input type="text" name="plan_name" id="ep-name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Duration (Months) *</label>
+            <select name="duration_months" id="ep-duration" class="form-control">
+              <option value="1">1 Month</option><option value="3">3 Months</option>
+              <option value="6">6 Months</option><option value="12">12 Months</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Price *</label>
+            <input type="number" name="price" id="ep-price" class="form-control" required step="0.01">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select name="is_active" id="ep-active" class="form-control">
+              <option value="1">Active</option><option value="0">Inactive</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <input type="text" name="description" id="ep-desc" class="form-control">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Features (comma-separated)</label>
+          <textarea name="features" id="ep-features" class="form-control" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('edit-plan-modal')">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update Plan</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function editPlan(plan) {
+  document.getElementById('ep-name').value = plan.plan_name;
+  document.getElementById('ep-duration').value = plan.duration_months;
+  document.getElementById('ep-price').value = plan.price;
+  document.getElementById('ep-active').value = plan.is_active;
+  document.getElementById('ep-desc').value = plan.description || '';
+  document.getElementById('ep-features').value = plan.features || '';
+  document.getElementById('edit-plan-form').action = `/plans/edit/${plan.id}`;
+  openModal('edit-plan-modal');
+}
+</script>
+{% endblock %}

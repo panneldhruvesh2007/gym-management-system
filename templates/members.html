@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% block title %}Members{% endblock %}
+{% block page_title %}Member Management{% endblock %}
+
+{% block content %}
+<!-- Search & Filter -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-body" style="padding:16px 20px;">
+    <form method="GET" action="{{ url_for('members') }}">
+      <div class="search-bar">
+        <div class="search-input-wrapper">
+          <i class="fas fa-search"></i>
+          <input type="text" name="search" value="{{ search }}" placeholder="Search by name, phone, email or ID...">
+        </div>
+        <select name="status" class="form-control" style="width:150px;">
+          <option value="">All Status</option>
+          <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+          <option value="expired" {% if status_filter == 'expired' %}selected{% endif %}>Expired</option>
+          <option value="suspended" {% if status_filter == 'suspended' %}selected{% endif %}>Suspended</option>
+        </select>
+        <select name="plan" class="form-control" style="width:180px;">
+          <option value="">All Plans</option>
+          {% for plan in plans %}
+          <option value="{{ plan.id }}" {% if plan_filter == plan.id|string %}selected{% endif %}>{{ plan.plan_name }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button>
+        <a href="{{ url_for('members') }}" class="btn btn-secondary"><i class="fas fa-times"></i> Clear</a>
+        <button type="button" class="btn btn-secondary" onclick="exportTableCSV('members-table','members.csv')"><i class="fas fa-download"></i> Export</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Members Table -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title"><i class="fas fa-users" style="color:var(--primary);margin-right:8px;"></i>Members List</span>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:13px;color:var(--text-muted);">{{ total }} members found</span>
+      <a href="{{ url_for('add_member') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Member</a>
+    </div>
+  </div>
+  <div class="table-wrapper">
+    <table class="data-table" id="members-table">
+      <thead>
+        <tr>
+          <th>Member</th><th>Contact</th><th>Plan</th><th>Trainer</th>
+          <th>Expiry</th><th>Status</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in members %}
+        <tr class="animate-fade-in">
+          <td>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="member-avatar">
+                {% if m.photo %}
+                  <img src="{{ url_for('static', filename='uploads/members/' + m.photo) }}" alt="">
+                {% else %}
+                  {{ m.full_name[0] }}
+                {% endif %}
+              </div>
+              <div>
+                <strong>{{ m.full_name }}</strong>
+                <div style="font-size:11px;color:var(--primary);">{{ m.member_id }}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div>{{ m.phone }}</div>
+            <div style="font-size:12px;color:var(--text-muted);">{{ m.email or '—' }}</div>
+          </td>
+          <td>
+            <span style="font-size:13px;color:var(--text-primary);">{{ m.plan_name }}</span>
+          </td>
+          <td>{{ m.trainer_name }}</td>
+          <td>
+            <div>{{ m.expiry_date }}</div>
+            {% set days = ((m.expiry_date | string)[:10] ) %}
+          </td>
+          <td>
+            <span class="badge badge-{{ m.membership_status }}">
+              {{ m.membership_status | capitalize }}
+            </span>
+          </td>
+          <td>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <a href="{{ url_for('view_member', member_id=m.id) }}" class="btn btn-secondary btn-icon btn-sm" data-tooltip="View Profile">
+                <i class="fas fa-eye"></i>
+              </a>
+              <a href="{{ url_for('edit_member', member_id=m.id) }}" class="btn btn-secondary btn-icon btn-sm" data-tooltip="Edit">
+                <i class="fas fa-edit"></i>
+              </a>
+              {% if session.role == 'admin' %}
+              <form method="POST" action="{{ url_for('delete_member', member_id=m.id) }}" data-confirm="Delete {{ m.full_name }}? This cannot be undone." style="display:inline;">
+                <button type="submit" class="btn btn-danger btn-icon btn-sm" data-tooltip="Delete">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7">
+            <div class="empty-state">
+              <i class="fas fa-users"></i>
+              <h3>No Members Found</h3>
+              <p>{% if search or status_filter %}Try adjusting your filters.{% else %}Add your first member to get started.{% endif %}</p>
+              <a href="{{ url_for('add_member') }}" class="btn btn-primary" style="margin-top:12px;"><i class="fas fa-plus"></i> Add Member</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if total_pages > 1 %}
+  <div style="padding:0 20px;">
+    <div class="pagination">
+      <a href="?page={{ page-1 }}&search={{ search }}&status={{ status_filter }}&plan={{ plan_filter }}"
+         class="page-btn {% if page == 1 %}disabled{% endif %}">
+        <i class="fas fa-chevron-left"></i>
+      </a>
+      {% for p in range(1, total_pages + 1) %}
+        {% if p == page or p == 1 or p == total_pages or (p >= page-1 and p <= page+1) %}
+          <a href="?page={{ p }}&search={{ search }}&status={{ status_filter }}&plan={{ plan_filter }}"
+             class="page-btn {% if p == page %}active{% endif %}">{{ p }}</a>
+        {% elif p == page-2 or p == page+2 %}
+          <span class="page-btn" style="cursor:default">...</span>
+        {% endif %}
+      {% endfor %}
+      <a href="?page={{ page+1 }}&search={{ search }}&status={{ status_filter }}&plan={{ plan_filter }}"
+         class="page-btn {% if page == total_pages %}disabled{% endif %}">
+        <i class="fas fa-chevron-right"></i>
+      </a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

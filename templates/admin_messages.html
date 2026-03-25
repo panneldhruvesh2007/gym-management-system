@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block title %}Messages{% endblock %}
+{% block page_title %}Member Messages{% endblock %}
+
+{% block content %}
+{% set unreplied = messages | rejectattr('reply') | list | length %}
+<div style="display:flex;gap:14px;margin-bottom:24px;flex-wrap:wrap;">
+  <div class="stat-card" style="--card-color:var(--warning);flex:1;min-width:160px;">
+    <div class="stat-value" style="font-size:28px;">{{ unreplied }}</div>
+    <div class="stat-label">Awaiting Reply</div>
+  </div>
+  <div class="stat-card" style="--card-color:var(--success);flex:1;min-width:160px;">
+    <div class="stat-value" style="font-size:28px;">{{ messages|length - unreplied }}</div>
+    <div class="stat-label">Replied</div>
+  </div>
+  <div class="stat-card" style="--card-color:var(--primary);flex:1;min-width:160px;">
+    <div class="stat-value" style="font-size:28px;">{{ messages|length }}</div>
+    <div class="stat-label">Total Messages</div>
+  </div>
+</div>
+
+<!-- Send Personal Message Card -->
+<div class="card" style="margin-bottom:24px;border:2px solid var(--primary);">
+  <div class="card-header" style="background:rgba(255,107,0,0.1);">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <i class="fas fa-paper-plane" style="color:var(--primary);font-size:20px;"></i>
+      <span style="font-weight:700;font-size:16px;color:var(--text-primary);">Send Personal Message to Member</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('send_personal_message') }}">
+      <div class="form-row">
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">Select Member</label>
+          <select name="member_id" class="form-control" required>
+            <option value="">Choose a member...</option>
+            {% for member in members %}
+            <option value="{{ member.id }}">{{ member.full_name }} ({{ member.member_id }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label class="form-label">Subject</label>
+          <input type="text" name="subject" class="form-control" placeholder="Message subject" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Message</label>
+        <textarea name="message" class="form-control" rows="3" placeholder="Type your message here..." required></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-paper-plane"></i> Send Message
+      </button>
+    </form>
+  </div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:14px;">
+{% for msg in messages %}
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div style="font-weight:700;color:var(--text-primary);font-size:15px;">{{ msg.subject }}</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-top:4px;">
+        {% if msg.status == 'admin_sent' %}
+        <span style="color:var(--primary);"><i class="fas fa-arrow-right"></i> To:</span> <strong style="color:var(--text-primary);">{{ msg.member_name }}</strong>
+        {% else %}
+        <span style="color:var(--success);"><i class="fas fa-arrow-left"></i> From:</span> <strong style="color:var(--text-primary);">{{ msg.member_name }}</strong> →
+        <strong style="color:#4DA6FF;">{% if msg.to_type == 'trainer' %}{{ msg.trainer_name }}{% else %}Gym Team{% endif %}</strong>
+        {% endif %}
+        · <span style="color:var(--text-muted);">{{ msg.created_at }}</span>
+      </div>
+    </div>
+    <span class="badge {% if msg.reply %}badge-active{% elif msg.status == 'admin_sent' %}badge-info{% else %}badge-pending{% endif %}">
+      {% if msg.status == 'admin_sent' %}Sent by Admin{% elif msg.reply %}Replied{% else %}Pending{% endif %}
+    </span>
+  </div>
+  <div class="card-body">
+    <div class="msg-thread" style="margin-bottom:16px;">
+      {% if msg.status == 'admin_sent' %}
+      <!-- Admin sent message -->
+      <div class="msg-bubble received">
+        <div style="font-size:10px;color:var(--primary);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">
+          <i class="fas fa-user-shield"></i> Admin
+        </div>
+        {{ msg.message }}
+        <div class="msg-meta">{{ msg.created_at }}</div>
+      </div>
+      {% if msg.reply %}
+      <div class="msg-bubble sent">
+        <div style="font-size:10px;color:rgba(255,107,0,0.7);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">
+          <i class="fas fa-user"></i> {{ msg.member_name }}
+        </div>
+        {{ msg.reply }}
+        <div class="msg-meta">{{ msg.updated_at }}</div>
+      </div>
+      {% endif %}
+      {% else %}
+      <!-- Member sent message -->
+      <div class="msg-bubble sent">
+        <div style="font-size:10px;color:rgba(255,107,0,0.7);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">
+          <i class="fas fa-user"></i> {{ msg.member_name }}
+        </div>
+        {{ msg.message }}
+        <div class="msg-meta">{{ msg.created_at }}</div>
+      </div>
+      {% if msg.reply %}
+      <div class="msg-bubble received">
+        <div style="font-size:10px;color:var(--success);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">
+          <i class="fas fa-user-shield"></i> Gym Team
+        </div>
+        {{ msg.reply }}
+        <div class="msg-meta">{{ msg.updated_at }}</div>
+      </div>
+      {% endif %}
+      {% endif %}
+    </div>
+    {% if msg.status != 'admin_sent' %}
+    <form method="POST" action="{{ url_for('reply_message', msg_id=msg.id) }}">
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <div style="flex:1;">
+          <label class="form-label">{% if msg.reply %}Update Reply{% else %}Reply{% endif %}</label>
+          <textarea name="reply" class="form-control" rows="2" placeholder="Type reply...">{{ msg.reply or '' }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-reply"></i> Reply</button>
+      </div>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="empty-state"><i class="fas fa-inbox"></i><h3>No Messages</h3><p>Member messages will appear here.</p></div>
+</div>
+{% endfor %}
+</div>
+{% endblock %}

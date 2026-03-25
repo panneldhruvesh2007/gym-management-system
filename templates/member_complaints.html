@@ -1,0 +1,109 @@
+{% extends 'member_base.html' %}
+{% block title %}Complaints{% endblock %}
+{% block page_title %}Complaints & Feedback{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;" class="grid-2-collapse">
+  <!-- Submit Form -->
+  <div class="card">
+    <div class="card-header"><span class="card-title"><i class="fas fa-plus-circle" style="color:#4DA6FF;margin-right:8px;"></i>Submit New Complaint</span></div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('member_complaints') }}">
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select name="category" class="form-control" required>
+            <option value="Equipment">🏋️ Equipment Issue</option>
+            <option value="Facility">🏢 Facility / Cleanliness</option>
+            <option value="Trainer">👤 Trainer Related</option>
+            <option value="Billing">💳 Billing / Payment</option>
+            <option value="Staff">🙋 Staff Behavior</option>
+            <option value="General">📝 General Feedback</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Subject *</label>
+          <input type="text" name="subject" class="form-control" placeholder="Brief subject of your complaint" required maxlength="100">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description *</label>
+          <textarea name="message" class="form-control" rows="5" placeholder="Describe your issue or feedback in detail..." required minlength="20"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;" id="complaint-submit-btn">
+          <i class="fas fa-paper-plane"></i> Submit Complaint
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- My Complaints -->
+  <div>
+    <div style="font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:14px;">
+      My Complaints ({{ complaints|length }})
+    </div>
+
+    {% if complaints %}
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      {% for c in complaints %}
+      <div class="complaint-card {{ c.status }}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+          <div>
+            <div style="font-weight:700;color:var(--text-primary);font-size:14px;">{{ c.subject }}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
+              <span style="background:rgba(77,166,255,0.1);color:#4DA6FF;padding:2px 8px;border-radius:10px;font-size:10px;">{{ c.category }}</span>
+              &nbsp;{{ c.created_at }}
+            </div>
+          </div>
+          <span class="badge
+            {% if c.status == 'open' %}badge-pending
+            {% elif c.status == 'in_progress' %}badge-suspended
+            {% elif c.status == 'resolved' or c.status == 'closed' %}badge-active
+            {% else %}badge-expired{% endif %}">
+            {% if c.status == 'open' %}🔴 Open
+            {% elif c.status == 'in_progress' %}🟡 In Progress
+            {% elif c.status == 'resolved' or c.status == 'closed' %}🟢 Resolved
+            {% else %}{{ c.status }}{% endif %}
+          </span>
+        </div>
+
+        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;padding:10px;background:var(--bg-card2);border-radius:6px;">
+          {{ c.message }}
+        </div>
+
+        {% if c.admin_reply %}
+        <div style="padding:10px 14px;background:rgba(0,208,132,0.06);border:1px solid rgba(0,208,132,0.15);border-radius:8px;margin-top:8px;">
+          <div style="font-size:10px;color:var(--success);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px;">
+            <i class="fas fa-reply"></i> Admin Response
+          </div>
+          <div style="font-size:13px;color:var(--text-secondary);">{{ c.admin_reply }}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">{{ c.updated_at }}</div>
+        </div>
+        {% else %}
+        <div style="font-size:12px;color:var(--text-muted);font-style:italic;">
+          <i class="fas fa-clock"></i> Awaiting response from gym team...
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="card">
+      <div class="empty-state" style="padding:40px;">
+        <i class="fas fa-smile"></i>
+        <h3>No Complaints Yet</h3>
+        <p>Use the form to report any issues or share feedback.</p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelector('form[action*="complaints"]').addEventListener('submit', function() {
+  const btn = document.getElementById('complaint-submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+});
+</script>
+{% endblock %}

@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% block title %}Payments{% endblock %}
+{% block page_title %}Billing & Payments{% endblock %}
+
+{% block content %}
+<!-- Summary Cards -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;">
+  <div class="stat-card" style="--card-color:#00D084;">
+    <div class="stat-icon" style="background:rgba(0,208,132,0.12);color:#00D084;font-size:20px;width:44px;height:44px;"><i class="fas fa-rupee-sign"></i></div>
+    <div class="stat-value" style="font-size:28px;" data-target="{{ total_revenue|int }}" data-prefix="{{ settings.currency }}">{{ settings.currency }}0</div>
+    <div class="stat-label">Total Revenue</div>
+  </div>
+  {% set cash_total = payments | selectattr('payment_mode','eq','Cash') | map(attribute='net_amount') | sum %}
+  {% set upi_total = payments | selectattr('payment_mode','eq','UPI') | map(attribute='net_amount') | sum %}
+  {% set card_total = payments | selectattr('payment_mode','eq','Card') | map(attribute='net_amount') | sum %}
+  <div class="stat-card" style="--card-color:#FFB347;">
+    <div class="stat-icon" style="background:rgba(255,179,71,0.12);color:#FFB347;font-size:20px;width:44px;height:44px;"><i class="fas fa-money-bill"></i></div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;">{{ settings.currency }}{{ cash_total|int }}</div>
+    <div class="stat-label">Cash</div>
+  </div>
+  <div class="stat-card" style="--card-color:#4DA6FF;">
+    <div class="stat-icon" style="background:rgba(77,166,255,0.12);color:#4DA6FF;font-size:20px;width:44px;height:44px;"><i class="fas fa-mobile-alt"></i></div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;">{{ settings.currency }}{{ upi_total|int }}</div>
+    <div class="stat-label">UPI</div>
+  </div>
+  <div class="stat-card" style="--card-color:#FF6B00;">
+    <div class="stat-icon" style="background:rgba(255,107,0,0.12);color:#FF6B00;font-size:20px;width:44px;height:44px;"><i class="fas fa-credit-card"></i></div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;">{{ settings.currency }}{{ card_total|int }}</div>
+    <div class="stat-label">Card</div>
+  </div>
+</div>
+
+<!-- Filter & Add -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-body" style="padding:16px 20px;">
+    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
+      <form method="GET" style="display:flex;gap:12px;flex-wrap:wrap;flex:1;">
+        <div class="search-input-wrapper" style="flex:1;min-width:200px;">
+          <i class="fas fa-search"></i>
+          <input type="text" name="search" value="{{ search }}" placeholder="Search member or invoice...">
+        </div>
+        <select name="mode" class="form-control" style="width:130px;">
+          <option value="">All Modes</option>
+          {% for m in ['Cash','UPI','Card','Online'] %}
+          <option {% if mode_filter == m %}selected{% endif %}>{{ m }}</option>
+          {% endfor %}
+        </select>
+        <select name="status" class="form-control" style="width:130px;">
+          <option value="">All Status</option>
+          {% for s in ['paid','pending','failed'] %}
+          <option {% if status_filter == s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i></button>
+      </form>
+      <button class="btn btn-primary" onclick="openModal('add-payment-modal')"><i class="fas fa-plus"></i> Record Payment</button>
+      <button class="btn btn-secondary" onclick="exportTableCSV('payments-table','payments.csv')"><i class="fas fa-download"></i> Export</button>
+    </div>
+  </div>
+</div>
+
+<!-- Payments Table -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title"><i class="fas fa-receipt" style="color:var(--primary);margin-right:8px;"></i>Payment Records</span>
+    <span style="font-size:13px;color:var(--text-muted);">{{ payments|length }} records</span>
+  </div>
+  <div class="table-wrapper">
+    <table class="data-table" id="payments-table">
+      <thead>
+        <tr><th>Invoice</th><th>Member</th><th>Plan</th><th>Amount</th><th>Mode</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for pay in payments %}
+        <tr>
+          <td><strong style="color:var(--primary);">{{ pay.invoice_number }}</strong></td>
+          <td>
+            <div><strong>{{ pay.member_name }}</strong></div>
+            <div style="font-size:11px;color:var(--text-muted);">{{ pay.member_code }}</div>
+          </td>
+          <td style="font-size:13px;">{{ pay.plan_name }}</td>
+          <td>
+            <div style="color:var(--success);font-weight:600;">{{ settings.currency }}{{ pay.net_amount|int }}</div>
+            {% if pay.discount %}<div style="font-size:11px;color:var(--text-muted);">-{{ settings.currency }}{{ pay.discount|int }} off</div>{% endif %}
+          </td>
+          <td>
+            <span class="badge" style="background:rgba(255,107,0,0.1);color:var(--primary);">
+              {% if pay.payment_mode == 'Cash' %}<i class="fas fa-money-bill"></i>
+              {% elif pay.payment_mode == 'UPI' %}<i class="fas fa-mobile-alt"></i>
+              {% elif pay.payment_mode == 'Card' %}<i class="fas fa-credit-card"></i>
+              {% else %}<i class="fas fa-globe"></i>{% endif %}
+              {{ pay.payment_mode }}
+            </span>
+          </td>
+          <td><span class="badge badge-{{ pay.payment_status }}">{{ pay.payment_status }}</span></td>
+          <td>{{ pay.payment_date }}</td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <a href="{{ url_for('view_invoice', payment_id=pay.id) }}" class="btn btn-secondary btn-sm" data-tooltip="View Invoice">
+                <i class="fas fa-file-invoice"></i>
+              </a>
+              <a href="{{ url_for('edit_payment', payment_id=pay.id) }}" class="btn btn-primary btn-sm" data-tooltip="Edit Payment">
+                <i class="fas fa-edit"></i>
+              </a>
+              <form method="POST" action="{{ url_for('delete_payment', payment_id=pay.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this payment record?');">
+                <button type="submit" class="btn btn-sm" style="background:rgba(220,53,69,0.1);color:var(--danger);" data-tooltip="Delete Payment">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8">
+          <div class="empty-state"><i class="fas fa-receipt"></i><h3>No Payments Found</h3><p>Record your first payment to get started.</p></div>
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Add Payment Modal -->
+<div class="modal-overlay" id="add-payment-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Record New Payment</span>
+      <button class="modal-close" onclick="closeModal('add-payment-modal')"><i class="fas fa-times"></i></button>
+    </div>
+    <form method="POST" action="{{ url_for('add_payment') }}">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Member *</label>
+          <select name="member_id" id="member-select" class="form-control" required onchange="fetchMemberPlan(this.value)">
+            <option value="">Select Member</option>
+            {% for m in members %}
+            <option value="{{ m.id }}">{{ m.full_name }} — {{ m.member_id }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Plan *</label>
+            <select name="plan_id" id="plan_id" class="form-control" required>
+              <option value="">Select Plan</option>
+              {% for p in plans %}
+              <option value="{{ p.id }}" data-price="{{ p.price }}" data-months="{{ p.duration_months }}">{{ p.plan_name }} — {{ settings.currency }}{{ p.price|int }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Date *</label>
+            <input type="date" name="payment_date" id="join_date" class="form-control" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Amount ({{ settings.currency }}) *</label>
+            <input type="number" name="amount" id="amount" class="form-control" step="0.01" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Discount</label>
+            <input type="number" name="discount" id="discount" class="form-control" step="0.01" value="0">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Net Amount</label>
+            <input type="number" name="net_amount" id="net_amount" class="form-control" step="0.01" readonly style="background:var(--bg-card2);">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Mode *</label>
+            <select name="payment_mode" class="form-control" required>
+              <option>Cash</option><option>UPI</option><option>Card</option><option>Online</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select name="payment_status" class="form-control">
+              <option value="paid">Paid</option><option value="pending">Pending</option><option value="failed">Failed</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Notes</label>
+            <input type="text" name="notes" class="form-control" placeholder="Optional...">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('add-payment-modal')">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Record Payment</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelector('input[name="payment_date"]').valueAsDate = new Date();
+
+async function fetchMemberPlan(memberId) {
+  if (!memberId) return;
+  try {
+    const res = await fetch(`/api/member/${memberId}`);
+    const data = await res.json();
+    if (data.plan_id) {
+      document.getElementById('plan_id').value = data.plan_id;
+      document.getElementById('amount').value = data.plan_price;
+      updateNetAmount();
+    }
+  } catch(e) {}
+}
+</script>
+{% endblock %}

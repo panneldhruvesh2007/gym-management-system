@@ -1,0 +1,144 @@
+{% extends 'member_base.html' %}
+{% block title %}My Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;" class="grid-2-collapse">
+
+  <!-- Profile Info -->
+  <div class="card">
+    <div class="card-header"><span class="card-title"><i class="fas fa-user" style="color:#4DA6FF;margin-right:8px;"></i>Personal Information</span></div>
+    <div class="card-body">
+      <div style="text-align:center;margin-bottom:24px;">
+        <div id="profile-photo-preview" style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,#4DA6FF,#9B59B6);display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:700;color:white;margin:0 auto 12px;overflow:hidden;border:3px solid #4DA6FF;position:relative;cursor:pointer;" onclick="document.getElementById('photo-upload').click();">
+          {% if member.photo %}
+            <img src="{{ url_for('static',filename='uploads/members/'+member.photo) }}" style="width:100%;height:100%;object-fit:cover;">
+          {% else %}{{ member.full_name[0] }}{% endif %}
+          <div style="position:absolute;bottom:0;right:0;background:#4DA6FF;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white;font-size:12px;">
+            <i class="fas fa-camera"></i>
+          </div>
+        </div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;">{{ member.full_name }}</div>
+        <div style="color:#4DA6FF;font-size:13px;">{{ member.member_id }}</div>
+      </div>
+
+      <form method="POST" action="{{ url_for('member_profile') }}" enctype="multipart/form-data">
+        <input type="hidden" name="action" value="update_info">
+        <div class="form-group">
+          <label class="form-label">Profile Photo</label>
+          <input type="file" name="photo" class="form-control" accept="image/*" id="photo-upload" onchange="previewPhoto(this)" style="display:none;">
+          <button type="button" class="btn btn-outline" style="width:100%;justify-content:center;border-color:#4DA6FF;color:#4DA6FF;" onclick="document.getElementById('photo-upload').click();">
+            <i class="fas fa-camera"></i> Choose Photo
+          </button>
+          <small style="color:var(--text-muted);font-size:11px;display:block;margin-top:4px;text-align:center;">
+            <i class="fas fa-info-circle"></i> Click profile picture or this button to upload. JPG, PNG or GIF (max 5MB)
+          </small>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="tel" name="phone" class="form-control" value="{{ member.phone or '' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-control" value="{{ member.email or '' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Address</label>
+          <textarea name="address" class="form-control" rows="2">{{ member.address or '' }}</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Emergency Contact</label>
+          <input type="tel" name="emergency_contact" class="form-control" value="{{ member.emergency_contact or '' }}">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
+          <i class="fas fa-save"></i> Update Profile
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:20px;">
+    <!-- Membership Details (read-only) -->
+    <div class="card">
+      <div class="card-header"><span class="card-title"><i class="fas fa-id-card" style="color:#4DA6FF;margin-right:8px;"></i>Membership Details</span></div>
+      <div class="card-body">
+        {% for label, value in [
+          ('Member ID', member.member_id),
+          ('Gender', member.gender or '—'),
+          ('Date of Birth', member.date_of_birth or '—'),
+          ('Blood Group', member.blood_group or '—'),
+          ('Join Date', member.join_date),
+          ('Expiry Date', member.expiry_date),
+          ('Status', member.membership_status | capitalize),
+          ('Current Plan', plan.plan_name if plan else '—'),
+          ('Trainer', trainer.full_name if trainer else 'Not Assigned'),
+        ] %}
+        <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border-light);font-size:13px;">
+          <span style="color:var(--text-muted);">{{ label }}</span>
+          <span style="color:var(--text-primary);font-weight:500;">{{ value }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Change Password -->
+    <div class="card">
+      <div class="card-header"><span class="card-title"><i class="fas fa-lock" style="color:#4DA6FF;margin-right:8px;"></i>Change Password</span></div>
+      <div class="card-body">
+        <div style="background:rgba(77,166,255,0.1);border-left:3px solid #4DA6FF;padding:12px;margin-bottom:16px;font-size:13px;color:var(--text-secondary);border-radius:4px;">
+          <i class="fas fa-shield-alt" style="color:#4DA6FF;"></i> Keep your account secure by using a strong password (minimum 4 characters)
+        </div>
+        <form method="POST" action="{{ url_for('member_profile') }}">
+          <input type="hidden" name="action" value="change_password">
+          <div class="form-group">
+            <label class="form-label">Current Password</label>
+            <input type="password" name="current_password" class="form-control" required placeholder="Enter your current password">
+          </div>
+          <div class="form-group">
+            <label class="form-label">New Password</label>
+            <input type="password" name="new_password" class="form-control" required minlength="4" placeholder="Enter new password (min 4 characters)">
+          </div>
+          <button type="submit" class="btn btn-outline" style="width:100%;justify-content:center;border-color:#4DA6FF;color:#4DA6FF;">
+            <i class="fas fa-key"></i> Change Password
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    {% if member.notes %}
+    <div class="card">
+      <div class="card-header"><span class="card-title"><i class="fas fa-sticky-note" style="color:#4DA6FF;margin-right:8px;"></i>Notes from Gym</span></div>
+      <div class="card-body" style="font-size:13px;color:var(--text-secondary);">{{ member.notes }}</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function previewPhoto(input) {
+  if (input.files && input.files[0]) {
+    // Check file size (max 5MB)
+    if (input.files[0].size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB');
+      input.value = '';
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      // Update the profile photo preview
+      const photoContainer = document.getElementById('profile-photo-preview');
+      if (photoContainer) {
+        photoContainer.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover;">' +
+          '<div style="position:absolute;bottom:0;right:0;background:#4DA6FF;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid white;font-size:12px;">' +
+          '<i class="fas fa-camera"></i></div>';
+      }
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+{% endblock %}

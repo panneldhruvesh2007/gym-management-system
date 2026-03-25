@@ -1,0 +1,7 @@
+flask
+werkzeug
+supabase
+flask-limiter
+flask-talisman
+flask-wtf
+bleach

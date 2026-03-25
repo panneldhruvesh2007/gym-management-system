@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}Attendance Management{% endblock %}
+{% block page_title %}Attendance Management{% endblock %}
+
+{% block content %}
+<!-- Stats & Filters -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(0,208,132,0.1);"><i class="fas fa-user-check" style="color:var(--success);"></i></div>
+    <div class="stat-content">
+      <div class="stat-value">{{ total_present }}</div>
+      <div class="stat-label">Present Today</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(77,166,255,0.1);"><i class="fas fa-users" style="color:var(--primary);"></i></div>
+    <div class="stat-content">
+      <div class="stat-value">{{ total_members }}</div>
+      <div class="stat-label">Total Members</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:rgba(255,193,7,0.1);"><i class="fas fa-percentage" style="color:var(--warning);"></i></div>
+    <div class="stat-content">
+      <div class="stat-value">{{ ((total_present / total_members * 100) if total_members > 0 else 0)|round|int }}%</div>
+      <div class="stat-label">Attendance Rate</div>
+    </div>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-body" style="padding:16px;">
+    <form method="GET" style="display:flex;gap:12px;align-items:end;flex-wrap:wrap;">
+      <div class="form-group" style="margin:0;flex:1;min-width:200px;">
+        <label class="form-label" style="margin-bottom:6px;">Search Member</label>
+        <input type="text" name="search" class="form-control" placeholder="Name, Phone, Member ID..." value="{{ search }}">
+      </div>
+      <div class="form-group" style="margin:0;min-width:180px;">
+        <label class="form-label" style="margin-bottom:6px;">Date</label>
+        <input type="date" name="date" class="form-control" value="{{ date_filter }}">
+      </div>
+      <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button>
+      <a href="{{ url_for('admin_attendance') }}" class="btn btn-secondary"><i class="fas fa-redo"></i> Reset</a>
+    </form>
+  </div>
+</div>
+
+<!-- Attendance List -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title"><i class="fas fa-clipboard-check" style="color:var(--primary);margin-right:8px;"></i>Mark Attendance - {{ date_filter }}</span>
+    <span style="font-size:13px;color:var(--text-muted);">Click checkbox to mark/unmark attendance</span>
+  </div>
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width:60px;">Status</th>
+          <th>Member ID</th>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Membership</th>
+          <th style="text-align:center;">Total Visits</th>
+          <th style="text-align:center;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for member in members %}
+        <tr style="{% if member.is_present %}background:rgba(0,208,132,0.05);{% endif %}">
+          <td>
+            {% if member.is_present %}
+              <span class="badge badge-active"><i class="fas fa-check-circle"></i> Present</span>
+            {% else %}
+              <span class="badge badge-inactive"><i class="fas fa-times-circle"></i> Absent</span>
+            {% endif %}
+          </td>
+          <td><strong>{{ member.member_id }}</strong></td>
+          <td>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#4DA6FF,#9B59B6);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;color:white;overflow:hidden;">
+                {% if member.photo %}
+                  <img src="{{ url_for('static',filename='uploads/members/'+member.photo) }}" style="width:100%;height:100%;object-fit:cover;">
+                {% else %}{{ member.full_name[0] }}{% endif %}
+              </div>
+              <span>{{ member.full_name }}</span>
+            </div>
+          </td>
+          <td>{{ member.phone }}</td>
+          <td>
+            {% if member.membership_status == 'active' %}
+              <span class="badge badge-active">Active</span>
+            {% elif member.membership_status == 'expired' %}
+              <span class="badge badge-inactive">Expired</span>
+            {% else %}
+              <span class="badge" style="background:rgba(255,193,7,0.1);color:var(--warning);">Suspended</span>
+            {% endif %}
+          </td>
+          <td style="text-align:center;color:var(--text-muted);">{{ member.total_visits }}</td>
+          <td style="text-align:center;">
+            <form method="POST" action="{{ url_for('toggle_attendance') }}" style="display:inline;">
+              <input type="hidden" name="member_id" value="{{ member.id }}">
+              <input type="hidden" name="att_date" value="{{ date_filter }}">
+              <input type="hidden" name="search" value="{{ search }}">
+              <button type="submit" class="btn btn-sm {% if member.is_present %}btn-outline{% else %}btn-primary{% endif %}" 
+                      style="padding:6px 16px;{% if member.is_present %}border-color:var(--danger);color:var(--danger);{% endif %}">
+                <i class="fas fa-{% if member.is_present %}times{% else %}check{% endif %}"></i>
+                {% if member.is_present %}Unmark{% else %}Mark{% endif %}
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">
+            <i class="fas fa-users" style="font-size:48px;opacity:0.3;display:block;margin-bottom:12px;"></i>
+            No members found
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Quick Stats -->
+<div style="margin-top:24px;padding:16px;background:var(--bg-card);border-radius:12px;border:1px solid var(--border-light);">
+  <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--text-muted);">
+    <span><i class="fas fa-info-circle" style="color:var(--primary);"></i> Tip: Use the date filter to view attendance for any past or future date</span>
+    <span><i class="fas fa-check-circle" style="color:var(--success);"></i> Green rows indicate present members</span>
+  </div>
+</div>
+{% endblock %}

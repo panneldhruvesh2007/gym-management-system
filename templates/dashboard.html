@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Stats Grid -->
+<div class="stats-grid">
+  <div class="stat-card" style="--card-color:#FF6B00;">
+    <div class="stat-icon" style="background:rgba(255,107,0,0.12);color:#FF6B00;"><i class="fas fa-users"></i></div>
+    <div class="stat-value" data-target="{{ total_members }}">0</div>
+    <div class="stat-label">Total Members</div>
+    <div class="stat-change up"><i class="fas fa-arrow-up"></i> All Time</div>
+  </div>
+  <div class="stat-card" style="--card-color:#00D084;">
+    <div class="stat-icon" style="background:rgba(0,208,132,0.12);color:#00D084;"><i class="fas fa-check-circle"></i></div>
+    <div class="stat-value" data-target="{{ active_members }}">0</div>
+    <div class="stat-label">Active Members</div>
+    <div class="stat-change up"><i class="fas fa-arrow-up"></i> Current</div>
+  </div>
+  <div class="stat-card" style="--card-color:#FF4444;">
+    <div class="stat-icon" style="background:rgba(255,68,68,0.12);color:#FF4444;"><i class="fas fa-times-circle"></i></div>
+    <div class="stat-value" data-target="{{ expired_members }}">0</div>
+    <div class="stat-label">Expired Members</div>
+    <div class="stat-change down"><i class="fas fa-arrow-down"></i> Needs Renewal</div>
+  </div>
+  <div class="stat-card" style="--card-color:#4DA6FF;">
+    <div class="stat-icon" style="background:rgba(77,166,255,0.12);color:#4DA6FF;"><i class="fas fa-rupee-sign"></i></div>
+    <div class="stat-value" data-target="{{ today_payments|int }}" data-prefix="{{ settings.currency }}">{{ settings.currency }}0</div>
+    <div class="stat-label">Today's Collections</div>
+    <div class="stat-change up"><i class="fas fa-calendar-day"></i> Today</div>
+  </div>
+  <div class="stat-card" style="--card-color:#FFB347;">
+    <div class="stat-icon" style="background:rgba(255,179,71,0.12);color:#FFB347;"><i class="fas fa-dumbbell"></i></div>
+    <div class="stat-value" data-target="{{ trainers_count }}">0</div>
+    <div class="stat-label">Active Trainers</div>
+    <div class="stat-change up"><i class="fas fa-star"></i> On Staff</div>
+  </div>
+</div>
+
+<!-- Charts Row -->
+<div class="grid-2" style="margin-bottom:24px;">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-chart-line" style="color:var(--primary);margin-right:8px;"></i>Revenue Trend</span>
+      <span style="font-size:12px;color:var(--text-muted);">Last 6 Months</span>
+    </div>
+    <div class="card-body">
+      <div class="chart-container">
+        <canvas id="revenueChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-chart-pie" style="color:var(--primary);margin-right:8px;"></i>Membership Status</span>
+    </div>
+    <div class="card-body">
+      <div class="chart-container">
+        <canvas id="memberChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Payments & Expiring Soon -->
+<div class="grid-2">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-receipt" style="color:var(--primary);margin-right:8px;"></i>Recent Payments</span>
+      <a href="{{ url_for('payments') }}" class="btn btn-secondary btn-sm">View All</a>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr><th>Member</th><th>Amount</th><th>Mode</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+          {% for pay in recent_payments %}
+          <tr>
+            <td><strong>{{ pay.member_name }}</strong><br><small style="color:var(--text-muted);">{{ pay.invoice_number }}</small></td>
+            <td style="color:var(--success);font-weight:600;">{{ settings.currency }}{{ pay.net_amount|int }}</td>
+            <td>
+              <span class="badge" style="background:rgba(255,107,0,0.1);color:var(--primary);">{{ pay.payment_mode }}</span>
+            </td>
+            <td>{{ pay.payment_date }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:24px;">No recent payments</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-exclamation-triangle" style="color:var(--warning);margin-right:8px;"></i>Expiring Soon</span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:12px;background:rgba(255,179,71,0.1);color:var(--warning);padding:4px 10px;border-radius:20px;">Next 7 Days</span>
+        <form method="POST" action="{{ url_for('check_expiring') }}" style="margin:0;">
+          <button type="submit" class="btn btn-secondary btn-sm" data-tooltip="Check for expired memberships and send notifications">
+            <i class="fas fa-sync-alt"></i> Check Expiry
+          </button>
+        </form>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr><th>Member</th><th>Expiry</th><th>Days Left</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          {% for m in expiring_soon %}
+          <tr>
+            <td><strong>{{ m.full_name }}</strong><br><small style="color:var(--text-muted);">{{ m.member_id }}</small></td>
+            <td>{{ m.expiry_date }}</td>
+            <td>
+              <span class="badge {% if m.days_left <= 2 %}badge-expired{% else %}badge-suspended{% endif %}">
+                {{ m.days_left }} days
+              </span>
+            </td>
+            <td><a href="{{ url_for('view_member', member_id=m.id) }}" class="btn btn-primary btn-sm">Renew</a></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4" style="text-align:center;color:var(--success);padding:24px;"><i class="fas fa-check-circle"></i> No memberships expiring soon</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div style="margin-top:24px;">
+  <div class="card-title" style="margin-bottom:16px;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Quick Actions</div>
+  <div style="display:flex;flex-wrap:wrap;gap:12px;">
+    <a href="{{ url_for('add_member') }}" class="btn btn-primary"><i class="fas fa-user-plus"></i> Add Member</a>
+    <a href="{{ url_for('payments') }}" class="btn btn-outline"><i class="fas fa-plus"></i> Record Payment</a>
+    <a href="{{ url_for('members') }}?status=expired" class="btn btn-secondary"><i class="fas fa-sync"></i> View Expired</a>
+    {% if session.role == 'admin' %}
+    <a href="{{ url_for('reports') }}" class="btn btn-secondary"><i class="fas fa-download"></i> Reports</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const isDark = !document.body.classList.contains('light-theme');
+const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+const textColor = isDark ? '#9090AA' : '#5A5A70';
+
+Chart.defaults.color = textColor;
+Chart.defaults.borderColor = gridColor;
+
+// Revenue Chart
+new Chart(document.getElementById('revenueChart'), {
+  type: 'line',
+  data: {
+    labels: {{ monthly_labels | tojson }},
+    datasets: [{
+      label: 'Revenue',
+      data: {{ monthly_values | tojson }},
+      borderColor: '#FF6B00',
+      backgroundColor: 'rgba(255,107,0,0.1)',
+      borderWidth: 2.5,
+      tension: 0.4,
+      fill: true,
+      pointBackgroundColor: '#FF6B00',
+      pointRadius: 4,
+      pointHoverRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: gridColor } },
+      y: { grid: { color: gridColor }, ticks: { callback: v => '₹' + v.toLocaleString('en-IN') } }
+    }
+  }
+});
+
+// Member Status Chart
+new Chart(document.getElementById('memberChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Active', 'Expired', 'Suspended'],
+    datasets: [{
+      data: [{{ active_members }}, {{ expired_members }}, {{ total_members - active_members - expired_members }}],
+      backgroundColor: ['#00D084', '#FF4444', '#FFB347'],
+      borderColor: isDark ? '#12121A' : '#fff',
+      borderWidth: 3,
+      hoverOffset: 6,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    cutout: '70%',
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true } }
+    }
+  }
+});
+</script>
+{% endblock %}
+
+{% block extra_bottom %}{% endblock %}

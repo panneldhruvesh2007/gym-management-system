@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+{% block title %}{% if edit_mode %}Edit Member{% else %}Add Member{% endif %}{% endblock %}
+{% block page_title %}{% if edit_mode %}Edit Member{% else %}Add New Member{% endif %}{% endblock %}
+
+{% block content %}
+<form method="POST" enctype="multipart/form-data">
+  <div class="grid-2" style="align-items:start;">
+    <!-- Left Column -->
+    <div style="display:flex;flex-direction:column;gap:20px;">
+      <!-- Basic Info -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title"><i class="fas fa-user" style="color:var(--primary);margin-right:8px;"></i>Personal Information</span>
+        </div>
+        <div class="card-body">
+          <!-- Photo Upload -->
+          <div class="form-group" style="text-align:center;">
+            <div style="width:100px;height:100px;margin:0 auto 12px;border-radius:50%;overflow:hidden;border:3px solid var(--primary);background:var(--bg-card2);display:flex;align-items:center;justify-content:center;font-size:36px;">
+              {% if edit_mode and member.photo %}
+                <img id="photo-preview" src="{{ url_for('static', filename='uploads/members/' + member.photo) }}" style="width:100%;height:100%;object-fit:cover;">
+              {% else %}
+                <img id="photo-preview" src="" style="width:100%;height:100%;object-fit:cover;display:none;">
+                <span id="photo-placeholder">📷</span>
+              {% endif %}
+            </div>
+            <label class="btn btn-secondary btn-sm" style="cursor:pointer;">
+              <i class="fas fa-camera"></i> Upload Photo
+              <input type="file" name="photo" accept="image/*" data-preview="photo-preview" style="display:none;" onchange="document.getElementById('photo-placeholder')&&(document.getElementById('photo-placeholder').style.display='none')">
+            </label>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Full Name *</label>
+              <input type="text" name="full_name" class="form-control" placeholder="Enter full name" required value="{{ member.full_name if edit_mode else '' }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Gender</label>
+              <select name="gender" class="form-control">
+                <option value="">Select Gender</option>
+                {% for g in ['Male','Female','Other'] %}
+                <option {% if edit_mode and member.gender == g %}selected{% endif %}>{{ g }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Phone *</label>
+              <input type="tel" name="phone" class="form-control" placeholder="+91-XXXXXXXXXX" required value="{{ member.phone if edit_mode else '' }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" name="email" class="form-control" placeholder="email@example.com" value="{{ member.email if edit_mode else '' }}">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Date of Birth</label>
+              <input type="date" name="date_of_birth" class="form-control" value="{{ member.date_of_birth if edit_mode else '' }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Blood Group</label>
+              <select name="blood_group" class="form-control">
+                <option value="">Select Blood Group</option>
+                {% for bg in ['A+','A-','B+','B-','O+','O-','AB+','AB-'] %}
+                <option {% if edit_mode and member.blood_group == bg %}selected{% endif %}>{{ bg }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Address</label>
+            <textarea name="address" class="form-control" rows="2" placeholder="Full address...">{{ member.address if edit_mode else '' }}</textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Emergency Contact</label>
+            <input type="tel" name="emergency_contact" class="form-control" placeholder="+91-XXXXXXXXXX" value="{{ member.emergency_contact if edit_mode else '' }}">
+          </div>
+
+          {% if edit_mode %}
+          <div class="form-group">
+            <label class="form-label">Portal Password</label>
+            <input type="password" name="member_password" class="form-control" placeholder="Leave blank to keep current password">
+            <small style="color:var(--text-muted);font-size:11px;display:block;margin-top:4px;">
+              <i class="fas fa-info-circle"></i> Only fill this if you want to change the member's portal password
+            </small>
+          </div>
+          {% else %}
+          <div class="form-group">
+            <label class="form-label">Portal Password</label>
+            <input type="password" name="member_password" class="form-control" placeholder="Leave blank to auto-generate">
+            <small style="color:var(--text-muted);font-size:11px;display:block;margin-top:4px;">
+              <i class="fas fa-info-circle"></i> If left blank, last 4 digits of phone will be used as password
+            </small>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div style="display:flex;flex-direction:column;gap:20px;">
+      <!-- Membership Info -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title"><i class="fas fa-id-card" style="color:var(--primary);margin-right:8px;"></i>Membership Details</span>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">Membership Plan</label>
+            <select name="plan_id" id="plan_id" class="form-control">
+              <option value="">Select Plan</option>
+              {% for plan in plans %}
+              <option value="{{ plan.id }}" data-months="{{ plan.duration_months }}" data-price="{{ plan.price }}"
+                {% if edit_mode and member.plan_id == plan.id %}selected{% endif %}>
+                {{ plan.plan_name }} — {{ settings.currency }}{{ plan.price|int }} ({{ plan.duration_months }} month{% if plan.duration_months > 1 %}s{% endif %})
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Assigned Trainer</label>
+            <select name="trainer_id" class="form-control">
+              <option value="">No Trainer</option>
+              {% for trainer in trainers %}
+              <option value="{{ trainer.id }}"
+                {% if edit_mode and member.trainer_id == trainer.id %}selected{% endif %}>
+                {{ trainer.full_name }} — {{ trainer.specialization }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Join Date *</label>
+              <input type="date" name="join_date" id="join_date" class="form-control" required
+                value="{{ member.join_date if edit_mode else '' }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Expiry Date</label>
+              <input type="date" name="expiry_date" id="expiry_date" class="form-control"
+                value="{{ member.expiry_date if edit_mode else '' }}">
+            </div>
+          </div>
+
+          {% if edit_mode %}
+          <div class="form-group">
+            <label class="form-label">Membership Status</label>
+            <select name="membership_status" class="form-control" id="membership-status" onchange="toggleSuspensionReason()">
+              {% for s in ['active','expired','suspended'] %}
+              <option {% if member.membership_status == s %}selected{% endif %}>{{ s }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group" id="suspension-reason-group" style="display:none;">
+            <label class="form-label">Suspension Reason</label>
+            <input type="text" name="suspension_reason" class="form-control" placeholder="e.g., payment issues, policy violation, etc.">
+            <small style="color:var(--text-muted);font-size:11px;margin-top:4px;display:block;">
+              <i class="fas fa-info-circle"></i> This reason will be sent to the member automatically
+            </small>
+          </div>
+          {% endif %}
+
+          <div class="form-group">
+            <label class="form-label">Notes</label>
+            <textarea name="notes" class="form-control" rows="2" placeholder="Any special notes...">{{ member.notes if edit_mode else '' }}</textarea>
+          </div>
+        </div>
+      </div>
+
+      {% if not edit_mode %}
+      <!-- Initial Payment -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title"><i class="fas fa-credit-card" style="color:var(--primary);margin-right:8px;"></i>Initial Payment</span>
+          <span style="font-size:12px;color:var(--text-muted);">Optional — fill to record payment</span>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Amount ({{ settings.currency }})</label>
+              <input type="number" name="amount" id="amount" class="form-control" placeholder="0.00" step="0.01">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Discount ({{ settings.currency }})</label>
+              <input type="number" name="discount" id="discount" class="form-control" placeholder="0.00" step="0.01" value="0">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Net Amount</label>
+              <input type="number" name="net_amount" id="net_amount" class="form-control" placeholder="0.00" step="0.01" readonly style="background:var(--bg-card2);">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Payment Mode</label>
+              <select name="payment_mode" class="form-control">
+                <option value="">Skip Payment</option>
+                <option>Cash</option><option>UPI</option><option>Card</option><option>Online</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Notes</label>
+            <input type="text" name="payment_notes" class="form-control" placeholder="e.g. Festival offer, Referral discount...">
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Submit -->
+      <div style="display:flex;gap:12px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;">
+          <i class="fas fa-{% if edit_mode %}save{% else %}user-plus{% endif %}"></i>
+          {% if edit_mode %}Update Member{% else %}Add Member{% endif %}
+        </button>
+        <a href="{{ url_for('members') }}" class="btn btn-secondary">
+          <i class="fas fa-times"></i> Cancel
+        </a>
+      </div>
+    </div>
+  </div>
+</form>
+
+<script>
+function toggleSuspensionReason() {
+  const status = document.getElementById('membership-status').value;
+  const reasonGroup = document.getElementById('suspension-reason-group');
+  if (status === 'suspended') {
+    reasonGroup.style.display = 'block';
+  } else {
+    reasonGroup.style.display = 'none';
+  }
+}
+
+// Check on page load
+document.addEventListener('DOMContentLoaded', function() {
+  toggleSuspensionReason();
+});
+</script>
+{% endblock %}

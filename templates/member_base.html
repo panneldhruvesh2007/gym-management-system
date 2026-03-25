@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="description" content="{% block meta_desc %}PowerFit Member Portal{% endblock %}">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0A0A0F">
+  <title>{% block title %}Member Portal{% endblock %} — PowerFit Gym</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/member.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  {% block head %}{% endblock %}
+</head>
+<body class="{% if settings and settings.theme == 'light' %}light-theme{% endif %}">
+
+<div class="flash-messages">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}"><i class="fas fa-info-circle"></i> {{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+</div>
+
+<div class="sidebar-overlay"></div>
+
+<div class="app-layout">
+  <!-- Member Sidebar -->
+  <aside class="sidebar member-sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon" style="{% if settings and settings.gym_logo %}padding:0;{% endif %}">
+        {% if settings and settings.gym_logo %}
+          <img src="{{ url_for('static', filename='uploads/' + settings.gym_logo) }}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
+        {% else %}
+          💪
+        {% endif %}
+      </div>
+      <div>
+        <div class="brand-text">{{ settings.gym_name }}</div>
+        <div class="brand-tagline" style="color:#4DA6FF;">Member Portal</div>
+      </div>
+    </div>
+
+    <!-- Member identity pill -->
+    <div style="margin:16px;padding:14px;background:rgba(77,166,255,0.08);border:1px solid rgba(77,166,255,0.2);border-radius:10px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#4DA6FF,#9B59B6);display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:16px;flex-shrink:0;overflow:hidden;">
+          {% if current_member_data and current_member_data.photo %}
+            <img src="{{ url_for('static',filename='uploads/members/'+current_member_data.photo) }}" style="width:100%;height:100%;object-fit:cover;">
+          {% else %}
+            {{ session.full_name[0] }}
+          {% endif %}
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--text-primary);">{{ session.full_name }}</div>
+          <div style="font-size:11px;color:#4DA6FF;font-weight:600;">{{ session.member_id }}</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">My Portal</div>
+      <a href="{{ url_for('member_dashboard') }}" class="nav-item {% if request.endpoint=='member_dashboard' %}active{% endif %}">
+        <i class="fas fa-home"></i> Dashboard
+      </a>
+      <a href="{{ url_for('member_attendance') }}" class="nav-item {% if request.endpoint=='member_attendance' %}active{% endif %}">
+        <i class="fas fa-calendar-check"></i> My Attendance
+      </a>
+      <a href="{{ url_for('member_invoices') }}" class="nav-item {% if request.endpoint=='member_invoices' %}active{% endif %}">
+        <i class="fas fa-file-invoice-dollar"></i> My Invoices
+      </a>
+
+      <div class="nav-section">Support</div>
+      <a href="{{ url_for('member_announcements') }}" class="nav-item {% if request.endpoint=='member_announcements' %}active{% endif %}">
+        <i class="fas fa-bullhorn"></i> Announcements
+        {% if unread_announcements > 0 %}
+        <span style="background:var(--danger);color:white;font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:auto;">{{ unread_announcements }}</span>
+        {% endif %}
+      </a>
+      <a href="{{ url_for('member_complaints') }}" class="nav-item {% if request.endpoint=='member_complaints' %}active{% endif %}">
+        <i class="fas fa-exclamation-circle"></i> Complaints
+        {% if unread_complaint_replies > 0 %}
+        <span style="background:var(--danger);color:white;font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:auto;">{{ unread_complaint_replies }}</span>
+        {% endif %}
+      </a>
+      <a href="{{ url_for('member_contact') }}" class="nav-item {% if request.endpoint=='member_contact' %}active{% endif %}">
+        <i class="fas fa-envelope"></i> Contact
+      </a>
+
+      <div class="nav-section">Account</div>
+      <a href="{{ url_for('member_profile') }}" class="nav-item {% if request.endpoint=='member_profile' %}active{% endif %}">
+        <i class="fas fa-user-cog"></i> My Profile
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-badge">
+        <div style="flex:1;">
+          <div class="user-name">Member Portal</div>
+          <div style="font-size:11px;color:#4DA6FF;">{{ session.member_id }}</div>
+        </div>
+        <a href="{{ url_for('logout') }}" style="color:var(--danger);font-size:14px;padding:4px;" data-tooltip="Logout">
+          <i class="fas fa-sign-out-alt"></i>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button class="topbar-btn hamburger"><i class="fas fa-bars"></i></button>
+      <h1 class="topbar-title" style="color:#4DA6FF;">{% block page_title %}Dashboard{% endblock %}</h1>
+      <div class="topbar-right">
+        <a href="{{ url_for('member_announcements') }}" class="topbar-btn" data-tooltip="Announcements" style="position:relative;">
+          <i class="fas fa-bell"></i>
+          {% if unread_announcements > 0 %}
+          <span style="position:absolute;top:6px;right:6px;width:8px;height:8px;background:var(--danger);border-radius:50%;border:2px solid var(--bg-primary);"></span>
+          {% endif %}
+        </a>
+        <a href="{{ url_for('member_complaints') }}" class="topbar-btn" data-tooltip="Complaints" style="position:relative;">
+          <i class="fas fa-exclamation-circle"></i>
+          {% if unread_complaint_replies > 0 %}
+          <span style="position:absolute;top:6px;right:6px;width:8px;height:8px;background:var(--danger);border-radius:50%;border:2px solid var(--bg-primary);"></span>
+          {% endif %}
+        </a>
+        <a href="{{ url_for('member_contact') }}" class="topbar-btn" data-tooltip="Contact Gym">
+          <i class="fas fa-envelope"></i>
+        </a>
+        <div class="dropdown">
+          <button class="topbar-btn" data-dropdown-trigger>
+            <div style="width:28px;height:28px;background:linear-gradient(135deg,#4DA6FF,#9B59B6);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:white;overflow:hidden;">
+              {% if current_member_data and current_member_data.photo %}
+                <img src="{{ url_for('static',filename='uploads/members/'+current_member_data.photo) }}" style="width:100%;height:100%;object-fit:cover;">
+              {% else %}
+                {{ session.full_name[0] }}
+              {% endif %}
+            </div>
+          </button>
+          <div class="dropdown-menu">
+            <a href="{{ url_for('member_profile') }}" class="dropdown-item"><i class="fas fa-user"></i> My Profile</a>
+            <a href="{{ url_for('logout') }}" class="dropdown-item danger"><i class="fas fa-sign-out-alt"></i> Logout</a>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div class="page-content">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+  // Auto-inject CSRF token into all POST forms
+  (function() {
+    var token = "{{ csrf_token() }}";
+    document.querySelectorAll('form[method="POST"], form[method="post"]').forEach(function(form) {
+      if (!form.querySelector('input[name="csrf_token"]')) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'csrf_token';
+        input.value = token;
+        form.appendChild(input);
+      }
+    });
+  })();
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

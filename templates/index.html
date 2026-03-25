@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="description" content="{{ settings.gym_name if settings else 'PowerFit Gym' }} — Premium gym memberships, expert trainers, and state-of-the-art equipment. Join today.">
+  <meta name="keywords" content="gym, fitness, membership, personal training, workout">
+  <meta name="theme-color" content="#0a0a0f">
+  <meta property="og:title" content="{{ settings.gym_name if settings else 'PowerFit Gym' }}">
+  <meta property="og:description" content="Transform your body, transform your life. Join today.">
+  <meta property="og:type" content="website">
+  <title>{{ settings.gym_name if settings else 'PowerFit Gym' }} - Management System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: white;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+    
+    /* Animated Background */
+    .video-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: -1;
+    }
+    .video-background::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(13,27,62,0.85) 0%, rgba(26,45,110,0.85) 50%, rgba(13,27,62,0.85) 100%);
+      z-index: 1;
+      animation: gradientShift 10s ease infinite;
+    }
+    .video-background video,
+    .video-background img {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      min-width: 100%;
+      min-height: 100%;
+      width: auto;
+      height: auto;
+      transform: translate(-50%, -50%);
+      object-fit: cover;
+    }
+    
+    /* Floating particles */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(255,107,0,0.6);
+      border-radius: 50%;
+      animation: floatParticle 15s infinite;
+    }
+    .particle:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 12s; }
+    .particle:nth-child(2) { left: 20%; animation-delay: 2s; animation-duration: 15s; }
+    .particle:nth-child(3) { left: 30%; animation-delay: 4s; animation-duration: 18s; }
+    .particle:nth-child(4) { left: 40%; animation-delay: 1s; animation-duration: 14s; }
+    .particle:nth-child(5) { left: 50%; animation-delay: 3s; animation-duration: 16s; }
+    .particle:nth-child(6) { left: 60%; animation-delay: 5s; animation-duration: 13s; }
+    .particle:nth-child(7) { left: 70%; animation-delay: 2.5s; animation-duration: 17s; }
+    .particle:nth-child(8) { left: 80%; animation-delay: 4.5s; animation-duration: 15s; }
+    .particle:nth-child(9) { left: 90%; animation-delay: 1.5s; animation-duration: 14s; }
+    .particle:nth-child(10) { left: 15%; animation-delay: 3.5s; animation-duration: 16s; }
+    
+    @keyframes floatParticle {
+      0% { transform: translateY(100vh) scale(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-100vh) scale(1); opacity: 0; }
+    }
+    
+    @keyframes gradientShift {
+      0%, 100% { filter: hue-rotate(0deg); }
+      50% { filter: hue-rotate(20deg); }
+    }
+    
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 20px;
+      position: relative;
+      z-index: 2;
+    }
+    
+    /* Animated decorative elements */
+    .deco-circle {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid rgba(255,107,0,0.3);
+      animation: pulse 4s ease-in-out infinite;
+    }
+    .deco-circle:nth-child(1) {
+      width: 300px;
+      height: 300px;
+      top: 10%;
+      left: 5%;
+      animation-delay: 0s;
+    }
+    .deco-circle:nth-child(2) {
+      width: 200px;
+      height: 200px;
+      bottom: 15%;
+      right: 10%;
+      animation-delay: 1s;
+    }
+    .deco-circle:nth-child(3) {
+      width: 150px;
+      height: 150px;
+      top: 60%;
+      left: 15%;
+      animation-delay: 2s;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.3; }
+      50% { transform: scale(1.1); opacity: 0.6; }
+    }
+    
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(-50px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(50px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes zoomIn {
+      from { opacity: 0; transform: scale(0.5); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes textGlow {
+      0%, 100% { 
+        text-shadow: 0 4px 20px rgba(0,0,0,0.5), 
+                     0 0 30px rgba(255,107,0,0.3),
+                     0 0 60px rgba(255,107,0,0.2); 
+      }
+      50% { 
+        text-shadow: 0 4px 20px rgba(0,0,0,0.5), 
+                     0 0 50px rgba(255,107,0,0.6),
+                     0 0 100px rgba(255,107,0,0.4); 
+      }
+    }
+    @keyframes letterSpacing {
+      0%, 100% { letter-spacing: 2px; }
+      50% { letter-spacing: 6px; }
+    }
+    
+    h1 {
+      font-size: 72px;
+      font-weight: 900;
+      margin-bottom: 16px;
+      margin-top: 40px;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      animation: zoomIn 0.8s ease, textGlow 3s ease-in-out infinite, letterSpacing 4s ease-in-out infinite;
+      letter-spacing: 2px;
+      background: linear-gradient(45deg, #fff, #FF6B00, #fff);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: zoomIn 0.8s ease, gradientText 3s ease infinite;
+    }
+    
+    @keyframes gradientText {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    .tagline {
+      font-size: 26px;
+      color: rgba(255,255,255,0.95);
+      margin-bottom: 50px;
+      font-weight: 400;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+      animation: fadeInUp 1s ease 0.3s both, slideInLeft 1s ease 0.3s both;
+      letter-spacing: 1px;
+    }
+    
+    .cta-button {
+      animation: fadeInUp 1s ease 0.5s both, bounce 2s ease 1.5s infinite;
+    }
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-10px); }
+      60% { transform: translateY(-5px); }
+    }
+    
+    .btn-login {
+      padding: 18px 60px;
+      font-size: 20px;
+      font-weight: 700;
+      border-radius: 50px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.3s ease;
+      background: linear-gradient(135deg, #FF6B00, #FF8C42);
+      color: white;
+      box-shadow: 0 10px 40px rgba(255,107,0,0.4);
+      border: none;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-login::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+    .btn-login:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+    .btn-login:hover {
+      transform: translateY(-5px) scale(1.05);
+      box-shadow: 0 15px 50px rgba(255,107,0,0.6);
+    }
+    .btn-login:active {
+      transform: translateY(-2px) scale(1.02);
+    }
+    .btn-login i {
+      position: relative;
+      z-index: 1;
+      animation: iconPulse 2s ease infinite;
+    }
+    .btn-login span {
+      position: relative;
+      z-index: 1;
+    }
+    @keyframes iconPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+    
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 80px auto 0;
+      padding: 0 20px;
+    }
+    .feature-card {
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 40px 30px;
+      text-align: center;
+      transition: all 0.4s ease;
+      opacity: 0;
+      transform: translateY(50px);
+      animation: slideUpCard 0.6s ease forwards;
+    }
+    .feature-card:nth-child(1) { animation-delay: 0.7s; }
+    .feature-card:nth-child(2) { animation-delay: 0.85s; }
+    .feature-card:nth-child(3) { animation-delay: 1s; }
+    .feature-card:nth-child(4) { animation-delay: 1.15s; }
+    
+    @keyframes slideUpCard {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-15px) scale(1.05);
+      background: rgba(255,255,255,0.12);
+      border-color: #4DA6FF;
+      box-shadow: 0 20px 60px rgba(77,166,255,0.3);
+    }
+    .feature-card:hover .feature-icon {
+      transform: scale(1.2) rotate(360deg);
+    }
+    .feature-icon {
+      font-size: 56px;
+      margin-bottom: 20px;
+      color: #4DA6FF;
+      filter: drop-shadow(0 4px 10px rgba(77,166,255,0.5));
+      transition: all 0.6s ease;
+      display: inline-block;
+    }
+    .feature-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: white;
+    }
+    .feature-desc {
+      font-size: 15px;
+      color: rgba(255,255,255,0.8);
+      line-height: 1.7;
+    }
+    
+    .stats {
+      display: flex;
+      gap: 80px;
+      justify-content: center;
+      margin-top: 80px;
+      flex-wrap: wrap;
+    }
+    .stat {
+      text-align: center;
+      opacity: 0;
+      transform: scale(0.5);
+      animation: popIn 0.5s ease forwards;
+    }
+    .stat:nth-child(1) { animation-delay: 1.3s; }
+    .stat:nth-child(2) { animation-delay: 1.45s; }
+    .stat:nth-child(3) { animation-delay: 1.6s; }
+    
+    @keyframes popIn {
+      to { opacity: 1; transform: scale(1); }
+    }
+    
+    .stat:hover {
+      transform: scale(1.15);
+      transition: transform 0.3s ease;
+    }
+    .stat-value {
+      font-size: 56px;
+      font-weight: 900;
+      color: #FF6B00;
+      text-shadow: 0 4px 20px rgba(255,107,0,0.5);
+      animation: countUp 2s ease;
+    }
+    @keyframes countUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .stat-label {
+      font-size: 16px;
+      color: rgba(255,255,255,0.8);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+    
+    @media (max-width: 768px) {
+      h1 { font-size: 48px; }
+      .tagline { font-size: 20px; }
+      .btn-login { padding: 14px 40px; font-size: 16px; }
+      .features { grid-template-columns: 1fr; }
+      .stats { gap: 40px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Video/Image Background -->
+  <div class="video-background">
+    <!-- You can replace this with actual gym video or image -->
+    <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1920&q=80" alt="Gym Background">
+    <!-- For video, uncomment below and comment out img above -->
+    <!-- <video autoplay muted loop playsinline>
+      <source src="{{ url_for('static', filename='gym-video.mp4') }}" type="video/mp4">
+    </video> -->
+  </div>
+
+  <!-- Floating Particles -->
+  <div class="particles">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+
+  <div class="hero">
+    <!-- Decorative circles -->
+    <div class="deco-circle"></div>
+    <div class="deco-circle"></div>
+    <div class="deco-circle"></div>
+    
+    <h1>{{ settings.gym_name if settings else 'PowerFit Gym' }}</h1>
+    <p class="tagline">Transform Your Body, Transform Your Life</p>
+    
+    <div class="cta-button">
+      <a href="{{ url_for('login') }}" class="btn-login">
+        <i class="fas fa-sign-in-alt"></i>
+        <span>Login to Portal</span>
+      </a>
+    </div>
+
+    <div class="features">
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-users"></i></div>
+        <div class="feature-title">Member Management</div>
+        <div class="feature-desc">Complete member profiles, attendance tracking, and membership plans</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-credit-card"></i></div>
+        <div class="feature-title">Billing & Payments</div>
+        <div class="feature-desc">Invoice generation, payment tracking, and financial reports</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+        <div class="feature-title">Analytics & Reports</div>
+        <div class="feature-desc">Revenue insights, member growth, and performance metrics</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-dumbbell"></i></div>
+        <div class="feature-title">Trainer Management</div>
+        <div class="feature-desc">Manage trainers, specializations, and member assignments</div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value">500+</div>
+        <div class="stat-label">Active Members</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">99%</div>
+        <div class="stat-label">Satisfaction</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">24/7</div>
+        <div class="stat-label">Access</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WhatsApp Float -->
+  <a href="https://wa.me/{{ settings.gym_phone | replace(' ','') | replace('+','') if settings and settings.gym_phone else '919876543210' }}?text=Hi%20{{ settings.gym_name | urlencode if settings else 'PowerFit' }}!%20I%27m%20interested%20in%20joining."
+     style="position:fixed;bottom:88px;right:24px;z-index:997;width:52px;height:52px;background:#25D366;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;box-shadow:0 4px 20px rgba(37,211,102,0.4);text-decoration:none;transition:transform 0.2s;"
+     target="_blank" rel="noopener" aria-label="Chat on WhatsApp"
+     onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+    <i class="fab fa-whatsapp"></i>
+  </a>
+
+  <!-- Back to Top -->
+  <button id="btt-index" onclick="window.scrollTo({top:0,behavior:'smooth'})"
+     style="position:fixed;bottom:28px;right:24px;z-index:997;width:44px;height:44px;background:rgba(255,255,255,0.1);color:white;border-radius:50%;border:1px solid rgba(255,255,255,0.2);display:none;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px);"
+     aria-label="Back to top">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <!-- Cookie Banner -->
+  <div id="idx-cookie" style="position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(10,10,20,0.95);border-top:1px solid rgba(255,107,0,0.2);padding:14px 20px;transform:translateY(100%);transition:transform 0.4s ease;backdrop-filter:blur(12px);">
+    <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+      <p style="font-size:13px;color:rgba(255,255,255,0.7);">🍪 We use cookies to improve your experience.</p>
+      <div style="display:flex;gap:10px;">
+        <button onclick="document.getElementById('idx-cookie').style.transform='translateY(100%)';try{localStorage.setItem('cookie_consent','accepted')}catch(e){}" style="background:#FF6B00;color:white;padding:8px 20px;border-radius:50px;font-size:13px;font-weight:600;border:none;cursor:pointer;">Accept</button>
+        <button onclick="document.getElementById('idx-cookie').style.transform='translateY(100%)';try{localStorage.setItem('cookie_consent','declined')}catch(e){}" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);padding:8px 20px;border-radius:50px;font-size:13px;border:none;cursor:pointer;">Decline</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Cookie banner
+    try { if (!localStorage.getItem('cookie_consent')) setTimeout(() => document.getElementById('idx-cookie').style.transform = 'translateY(0)', 1000); } catch(e) {}
+    // Back to top
+    window.addEventListener('scroll', function() {
+      var btn = document.getElementById('btt-index');
+      if (btn) btn.style.display = window.scrollY > 400 ? 'flex' : 'none';
+    }, {passive:true});
+  </script>
+</body>
+</html>

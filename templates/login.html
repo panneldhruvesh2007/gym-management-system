@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — {{ settings.gym_name if settings else 'PowerFit Gym' }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg-base);overflow:hidden; }
+    .login-bg {
+      position:fixed;inset:0;z-index:0;
+      background: radial-gradient(ellipse at 20% 50%,rgba(255,107,0,0.15) 0%,transparent 50%),
+                  radial-gradient(ellipse at 80% 20%,rgba(255,61,61,0.1) 0%,transparent 50%),var(--bg-base);
+    }
+    .login-grid {
+      position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;
+      max-width:900px;width:100%;min-height:580px;
+      background:var(--bg-card);border:1px solid var(--border);border-radius:20px;
+      overflow:hidden;box-shadow:var(--shadow-lg);animation:slideUp .6s ease;margin:20px;
+    }
+    .login-hero {
+      background:linear-gradient(135deg,#1a0a00 0%,#2d1200 50%,#1a0000 100%);
+      padding:48px;display:flex;flex-direction:column;justify-content:space-between;
+      position:relative;overflow:hidden;
+    }
+    .login-hero::before {
+      content:'';position:absolute;inset:0;
+      background:url("https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80") center/cover;
+      opacity:0.2;
+    }
+    .hero-content { position:relative;z-index:1; }
+    .hero-brand-name { font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px;color:white;line-height:1;animation:fadeInDown 1s ease; }
+    .hero-brand-sub  { font-size:12px;color:var(--primary);letter-spacing:3px;text-transform:uppercase;animation:fadeInDown 1s ease 0.2s both; }
+    .hero-heading { font-family:'Bebas Neue',sans-serif;font-size:46px;color:white;line-height:1;margin:24px 0 12px;animation:fadeInUp 1s ease 0.4s both; }
+    .hero-heading span { color:var(--primary); }
+    .hero-desc { font-size:13px;color:rgba(255,255,255,0.6);line-height:1.6;max-width:270px;animation:fadeInUp 1s ease 0.6s both; }
+    .hero-stats { display:flex;gap:24px;position:relative;z-index:1;animation:fadeInUp 1s ease 0.8s both; }
+    .hero-stat-val { font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--primary); }
+    .hero-stat-lbl { font-size:11px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px; }
+    .login-form-panel { padding:48px;display:flex;flex-direction:column;justify-content:center; }
+    .login-title { font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--text-primary);margin-bottom:8px;text-align:center; }
+    .login-subtitle { font-size:14px;color:var(--text-muted);margin-bottom:32px;text-align:center; }
+    .demo-box { background:rgba(255,107,0,0.08);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:var(--text-muted);line-height:1.8; }
+    .demo-box strong { color:var(--primary); }
+    
+    /* Logo styles */
+    .logo-container {
+      margin-bottom:20px;
+      animation:fadeInDown 1s ease;
+    }
+    .logo {
+      width:80px;
+      height:80px;
+      border-radius:50%;
+      background:linear-gradient(135deg,#4DA6FF,#9B59B6);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:40px;
+      box-shadow:0 10px 30px rgba(77,166,255,0.4);
+      animation:float 3s ease-in-out infinite;
+      overflow:hidden;
+    }
+    .logo img {
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform:translateY(0px); }
+      50% { transform:translateY(-10px); }
+    }
+    @keyframes fadeInDown {
+      from { opacity:0;transform:translateY(-30px); }
+      to { opacity:1;transform:translateY(0); }
+    }
+    @keyframes fadeInUp {
+      from { opacity:0;transform:translateY(30px); }
+      to { opacity:1;transform:translateY(0); }
+    }
+    
+    @media(max-width:640px){ .login-grid{grid-template-columns:1fr;} .login-hero{display:none;} .login-form-panel{padding:32px 24px;} }
+  </style>
+</head>
+<body>
+<div class="login-bg"></div>
+<div class="login-grid">
+  <div class="login-hero">
+    <div class="hero-content">
+      <div class="logo-container">
+        <div class="logo">
+          {% if settings and settings.gym_logo %}
+            <img src="{{ url_for('static', filename='uploads/' + settings.gym_logo) }}" alt="{{ settings.gym_name }}">
+          {% else %}
+            💪
+          {% endif %}
+        </div>
+      </div>
+      <div class="hero-brand-name">{{ settings.gym_name if settings else 'PowerFit Gym' }}</div>
+      <div class="hero-heading">YOUR <span>FITNESS</span><br>JOURNEY</div>
+      <p class="hero-desc">Access your personalized dashboard, track progress, manage memberships, and stay connected with your fitness goals.</p>
+    </div>
+    <div class="hero-stats">
+      <div><div class="hero-stat-val">500+</div><div class="hero-stat-lbl">Members</div></div>
+      <div><div class="hero-stat-val">99%</div><div class="hero-stat-lbl">Uptime</div></div>
+      <div><div class="hero-stat-val">24/7</div><div class="hero-stat-lbl">Access</div></div>
+    </div>
+  </div>
+
+  <div class="login-form-panel">
+    <div class="login-title">Welcome Back</div>
+    <div class="login-subtitle">Sign in to access your portal</div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}" style="margin-bottom:16px;animation:none;">
+          <i class="fas fa-{% if category=='success' %}check{% else %}exclamation-circle{% endif %}"></i> {{ message }}
+        </div>
+      {% endfor %}
+    {% endwith %}
+
+ 
+    <form method="POST" action="{{ url_for('login') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="form-group">
+        <label class="form-label">Username / Member ID / Email</label>
+        <div class="input-group">
+          <span class="input-group-icon"><i class="fas fa-user"></i></span>
+          <input type="text" name="identifier" class="form-control" placeholder="Enter your credentials" required autofocus>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:28px;">
+        <label class="form-label">Password</label>
+        <div class="input-group">
+          <span class="input-group-icon"><i class="fas fa-lock"></i></span>
+          <input type="password" name="password" id="pw" class="form-control" placeholder="Enter your password" required>
+          <span class="input-group-icon" style="cursor:pointer;" onclick="togglePw()"><i class="fas fa-eye" id="eye"></i></span>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;font-size:15px;">
+        <i class="fas fa-sign-in-alt"></i> Sign In
+      </button>
+    </form>
+  </div>
+</div>
+<script>
+function togglePw(){const i=document.getElementById('pw'),e=document.getElementById('eye');i.type=i.type==='password'?'text':'password';e.className=i.type==='password'?'fas fa-eye':'fas fa-eye-slash';}
+</script>
+</body>
+</html>

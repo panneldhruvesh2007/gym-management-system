@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% block title %}Edit Payment{% endblock %}
+{% block page_title %}Edit Payment - {{ payment.invoice_number }}{% endblock %}
+
+{% block content %}
+<form method="POST">
+  <div class="grid-2" style="align-items:start;">
+    <!-- Left Column -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title"><i class="fas fa-receipt" style="color:var(--primary);margin-right:8px;"></i>Payment Details</span>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <label class="form-label">Invoice Number</label>
+          <input type="text" class="form-control" value="{{ payment.invoice_number }}" readonly style="background:var(--bg-card2);">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Member</label>
+          <input type="text" class="form-control" value="{{ member.full_name }} ({{ member.member_id }})" readonly style="background:var(--bg-card2);">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Membership Plan</label>
+          <select name="plan_id" id="plan_id" class="form-control">
+            <option value="">No Plan</option>
+            {% for plan in plans %}
+            <option value="{{ plan.id }}" data-price="{{ plan.price }}" data-months="{{ plan.duration_months }}"
+              {% if payment.plan_id == plan.id %}selected{% endif %}>
+              {{ plan.plan_name }} — {{ settings.currency }}{{ plan.price|int }} ({{ plan.duration_months }} month{% if plan.duration_months > 1 %}s{% endif %})
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Amount ({{ settings.currency }})</label>
+            <input type="number" name="amount" id="amount" class="form-control" step="0.01" required value="{{ payment.amount }}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Discount ({{ settings.currency }})</label>
+            <input type="number" name="discount" id="discount" class="form-control" step="0.01" value="{{ payment.discount }}">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Net Amount ({{ settings.currency }})</label>
+          <input type="number" id="net_amount" class="form-control" step="0.01" readonly value="{{ payment.net_amount }}" style="background:var(--bg-card2);font-weight:600;color:var(--success);">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Payment Mode</label>
+            <select name="payment_mode" class="form-control" required>
+              {% for mode in ['Cash','UPI','Card','Online'] %}
+              <option {% if payment.payment_mode == mode %}selected{% endif %}>{{ mode }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Status</label>
+            <select name="payment_status" class="form-control">
+              {% for status in ['paid','pending','failed'] %}
+              <option {% if payment.payment_status == status %}selected{% endif %}>{{ status }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Payment Date</label>
+          <input type="date" name="payment_date" class="form-control" required value="{{ payment.payment_date }}">
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div style="display:flex;flex-direction:column;gap:20px;">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title"><i class="fas fa-calendar-alt" style="color:var(--primary);margin-right:8px;"></i>Validity Period</span>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">Valid From</label>
+            <input type="date" name="valid_from" id="valid_from" class="form-control" required value="{{ payment.valid_from }}">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Valid To</label>
+            <input type="date" name="valid_to" id="valid_to" class="form-control" required value="{{ payment.valid_to }}">
+          </div>
+
+          <div style="background:rgba(77,166,255,0.1);border-left:3px solid var(--primary);padding:12px;border-radius:4px;font-size:13px;color:var(--text-secondary);">
+            <i class="fas fa-info-circle" style="color:var(--primary);"></i> Validity dates will be calculated automatically when you select a plan, but you can adjust them manually.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title"><i class="fas fa-sticky-note" style="color:var(--primary);margin-right:8px;"></i>Additional Notes</span>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">Notes</label>
+            <textarea name="notes" class="form-control" rows="3" placeholder="e.g. Festival discount, Referral bonus...">{{ payment.notes }}</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display:flex;gap:12px;">
+        <button type="submit" class="btn btn-primary" style="flex:1;justify-content:center;">
+          <i class="fas fa-save"></i> Update Payment
+        </button>
+        <a href="{{ url_for('payments') }}" class="btn btn-secondary">
+          <i class="fas fa-times"></i> Cancel
+        </a>
+      </div>
+    </div>
+  </div>
+</form>
+
+<script>
+// Auto-calculate net amount
+function updateNetAmount() {
+  const amount = parseFloat(document.getElementById('amount').value) || 0;
+  const discount = parseFloat(document.getElementById('discount').value) || 0;
+  document.getElementById('net_amount').value = (amount - discount).toFixed(2);
+}
+
+document.getElementById('amount').addEventListener('input', updateNetAmount);
+document.getElementById('discount').addEventListener('input', updateNetAmount);
+
+// Auto-fill amount from plan
+document.getElementById('plan_id').addEventListener('change', function() {
+  const selected = this.options[this.selectedIndex];
+  if (selected.value) {
+    const price = parseFloat(selected.dataset.price) || 0;
+    const months = parseInt(selected.dataset.months) || 1;
+    document.getElementById('amount').value = price.toFixed(2);
+    updateNetAmount();
+    
+    // Auto-calculate validity dates
+    const validFrom = document.getElementById('valid_from').value;
+    if (validFrom) {
+      const fromDate = new Date(validFrom);
+      const toDate = new Date(fromDate);
+      toDate.setMonth(toDate.getMonth() + months);
+      toDate.setDate(toDate.getDate() - 1);
+      document.getElementById('valid_to').value = toDate.toISOString().split('T')[0];
+    }
+  }
+});
+
+// Auto-calculate validity when valid_from changes
+document.getElementById('valid_from').addEventListener('change', function() {
+  const selected = document.getElementById('plan_id').options[document.getElementById('plan_id').selectedIndex];
+  if (selected.value) {
+    const months = parseInt(selected.dataset.months) || 1;
+    const fromDate = new Date(this.value);
+    const toDate = new Date(fromDate);
+    toDate.setMonth(toDate.getMonth() + months);
+    toDate.setDate(toDate.getDate() - 1);
+    document.getElementById('valid_to').value = toDate.toISOString().split('T')[0];
+  }
+});
+</script>
+{% endblock %}

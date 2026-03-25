@@ -1,0 +1,32 @@
+# Secrets — never push these
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Logs
+app.log
+*.log
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Uploads (optional — remove if you want to track them)
+static/uploads/members/
+static/uploads/trainers/

@@ -1,0 +1,206 @@
+{% extends 'member_base.html' %}
+{% block title %}My Attendance{% endblock %}
+{% block page_title %}My Attendance{% endblock %}
+
+{% block content %}
+<!-- Stats -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px;">
+  <div class="member-stat">
+    <div class="member-stat-val">{{ total_visits|default(0) }}</div>
+    <div class="member-stat-lbl">Total Visits</div>
+  </div>
+  <div class="member-stat">
+    <div class="member-stat-val">{{ month_count|default(0) }}</div>
+    <div class="member-stat-lbl">This Month</div>
+  </div>
+  <div class="member-stat">
+    <div class="member-stat-val">{{ last_month_count|default(0) }}</div>
+    <div class="member-stat-lbl">Last Month</div>
+  </div>
+  <div class="member-stat">
+    <div class="member-stat-val" style="color:var(--warning);">{{ streak|default(0) }}</div>
+    <div class="member-stat-lbl">Current Streak</div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">🔥 days</div>
+  </div>
+</div>
+
+<!-- Streak badge -->
+{% if streak and streak > 0 %}
+<div style="margin-bottom:24px;">
+  <span class="streak-badge"><i class="fas fa-fire"></i> {{ streak }}-day streak! Keep it up!</span>
+</div>
+{% endif %}
+
+<!-- Calendar Grid -->
+{% for month_key, days in calendar_data.items() %}
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-header">
+    <span class="card-title"><i class="fas fa-calendar" style="color:#4DA6FF;margin-right:8px;"></i>{{ month_key }}</span>
+    <span style="background:rgba(0,208,132,0.1);color:var(--success);padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">{{ days|length }} visits</span>
+  </div>
+  <div class="card-body">
+    <!-- Calendar View -->
+    <div class="attendance-calendar" data-month="{{ month_key }}" data-attendance="{{ days|join(',') }}"></div>
+    
+    <div style="margin-top:16px;display:flex;align-items:center;gap:16px;font-size:12px;color:var(--text-muted);flex-wrap:wrap;">
+      <span style="display:inline-flex;align-items:center;gap:6px;">
+        <span style="width:12px;height:12px;background:rgba(0,208,132,0.3);border-radius:3px;display:inline-block;"></span> Present
+      </span>
+      <span style="display:inline-flex;align-items:center;gap:6px;">
+        <span style="width:12px;height:12px;background:rgba(77,166,255,0.15);border-radius:3px;display:inline-block;"></span> Today
+      </span>
+      <span style="display:inline-flex;align-items:center;gap:6px;">
+        <span style="width:12px;height:12px;background:var(--bg-card2);border-radius:3px;display:inline-block;"></span> Absent
+      </span>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <div class="empty-state" style="padding:60px 20px;">
+    <i class="fas fa-calendar-times" style="color:var(--text-muted);font-size:48px;margin-bottom:16px;display:block;"></i>
+    <h3>No Attendance Records</h3>
+    <p>Your gym visits will appear here once recorded by the admin.</p>
+  </div>
+</div>
+{% endfor %}
+
+<!-- Recent Visits Table -->
+<div class="card" style="margin-top:20px;">
+  <div class="card-header"><span class="card-title"><i class="fas fa-history" style="color:#4DA6FF;margin-right:8px;"></i>All Visit History</span></div>
+  <div class="table-wrapper">
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Date</th><th>Day</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for a in attendance %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td><strong>{{ a }}</strong></td>
+          <td style="color:var(--text-muted);">
+            {% set weekdays = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] %}
+            <!-- We'll just show the date, day calculation in JS -->
+            <span class="day-label" data-date="{{ a }}"></span>
+          </td>
+          <td><span class="badge badge-active">Present</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-muted);">No visits recorded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Fill day names in table
+document.querySelectorAll('.day-label').forEach(el => {
+  const d = new Date(el.dataset.date);
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  el.textContent = days[d.getDay()];
+});
+
+// Build calendar grids
+document.querySelectorAll('.attendance-calendar').forEach(calendarEl => {
+  const monthKey = calendarEl.dataset.month; // e.g., "2025-03"
+  const attendanceDates = calendarEl.dataset.attendance ? calendarEl.dataset.attendance.split(',') : [];
+  
+  const [year, month] = monthKey.split('-').map(Number);
+  const today = new Date().toISOString().split('T')[0];
+  
+  // Get first day of month and total days
+  const firstDay = new Date(year, month - 1, 1);
+  const lastDay = new Date(year, month, 0);
+  const totalDays = lastDay.getDate();
+  const startDayOfWeek = firstDay.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  
+  // Adjust to make Monday = 0
+  const startOffset = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
+  
+  // Build calendar HTML
+  let html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;">';
+  
+  // Day headers
+  const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  dayNames.forEach(day => {
+    html += `<div style="text-align:center;font-size:11px;font-weight:600;color:var(--text-muted);padding:4px 0;">${day}</div>`;
+  });
+  
+  html += '</div>';
+  
+  // Calendar days grid
+  html += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">';
+  
+  // Empty cells before first day
+  for (let i = 0; i < startOffset; i++) {
+    html += '<div style="height:36px;"></div>';
+  }
+  
+  // Days of month
+  for (let day = 1; day <= totalDays; day++) {
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const isPresent = attendanceDates.includes(dateStr);
+    const isToday = dateStr === today;
+    
+    // Get day name
+    const dayDate = new Date(year, month - 1, day);
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayName = dayNames[dayDate.getDay()];
+    
+    let bgColor = 'var(--bg-card2)';
+    let textColor = 'var(--text-muted)';
+    let borderColor = 'var(--border-light)';
+    let tooltip = `${dayName}, ${dateStr}`;
+    
+    if (isPresent) {
+      bgColor = 'rgba(0,208,132,0.15)';
+      textColor = 'var(--success)';
+      borderColor = 'rgba(0,208,132,0.4)';
+      tooltip = `✓ Present on ${dayName}, ${dateStr}`;
+    } else {
+      tooltip = `Absent on ${dayName}, ${dateStr}`;
+    }
+    
+    if (isToday) {
+      borderColor = '#4DA6FF';
+      if (!isPresent) {
+        bgColor = 'rgba(77,166,255,0.08)';
+        textColor = '#4DA6FF';
+      }
+      tooltip += ' (Today)';
+    }
+    
+    html += `
+      <div 
+        title="${tooltip}"
+        style="
+          height:36px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          background:${bgColor};
+          border:1px solid ${borderColor};
+          border-radius:6px;
+          font-size:13px;
+          font-weight:${isPresent ? '600' : '500'};
+          color:${textColor};
+          position:relative;
+          transition:all 0.15s;
+          cursor:default;
+        "
+        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)';"
+        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';"
+      >
+        ${day}
+        ${isToday ? '<div style="position:absolute;bottom:3px;width:3px;height:3px;background:#4DA6FF;border-radius:50%;"></div>' : ''}
+        ${isPresent ? '<div style="position:absolute;top:2px;right:2px;width:5px;height:5px;background:var(--success);border-radius:50%;"></div>' : ''}
+      </div>
+    `;
+  }
+  
+  html += '</div>';
+  calendarEl.innerHTML = html;
+});
+</script>
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block title %}Reports{% endblock %}
+{% block page_title %}Analytics & Reports{% endblock %}
+
+{% block content %}
+<!-- Summary Stats -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;">
+  <div class="stat-card" style="--card-color:#00D084;">
+    <div class="stat-icon" style="background:rgba(0,208,132,0.12);color:#00D084;"><i class="fas fa-rupee-sign"></i></div>
+    <div class="stat-value" data-target="{{ total_revenue|int }}" data-prefix="{{ settings.currency }}">{{ settings.currency }}0</div>
+    <div class="stat-label">Total Revenue</div>
+  </div>
+  <div class="stat-card" style="--card-color:#FFB347;">
+    <div class="stat-icon" style="background:rgba(255,179,71,0.12);color:#FFB347;"><i class="fas fa-hourglass-half"></i></div>
+    <div class="stat-value" data-target="{{ pending_payments|int }}" data-prefix="{{ settings.currency }}">{{ settings.currency }}0</div>
+    <div class="stat-label">Pending</div>
+  </div>
+  <div class="stat-card" style="--card-color:#4DA6FF;">
+    <div class="stat-icon" style="background:rgba(77,166,255,0.12);color:#4DA6FF;"><i class="fas fa-users"></i></div>
+    <div class="stat-value" data-target="{{ total_members }}">0</div>
+    <div class="stat-label">Total Members</div>
+  </div>
+  <div class="stat-card" style="--card-color:#FF6B00;">
+    <div class="stat-icon" style="background:rgba(255,107,0,0.12);color:#FF6B00;"><i class="fas fa-receipt"></i></div>
+    <div class="stat-value" data-target="{{ payments|length }}">0</div>
+    <div class="stat-label">Total Transactions</div>
+  </div>
+</div>
+
+<!-- Charts -->
+<div class="grid-2" style="margin-bottom:24px;">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-chart-bar" style="color:var(--primary);margin-right:8px;"></i>Monthly Revenue</span>
+      <button onclick="exportTableCSV('rev-table','revenue-report.csv')" class="btn btn-secondary btn-sm"><i class="fas fa-download"></i> Export</button>
+    </div>
+    <div class="card-body"><div class="chart-container"><canvas id="monthlyRevChart"></canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-chart-pie" style="color:var(--primary);margin-right:8px;"></i>Revenue by Payment Mode</span>
+    </div>
+    <div class="card-body"><div class="chart-container"><canvas id="modeChart"></canvas></div></div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:24px;">
+  <div class="card-header">
+    <span class="card-title"><i class="fas fa-chart-line" style="color:var(--primary);margin-right:8px;"></i>Member Growth</span>
+  </div>
+  <div class="card-body"><div class="chart-container"><canvas id="growthChart"></canvas></div></div>
+</div>
+
+<!-- Payment Table for Export -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title"><i class="fas fa-table" style="color:var(--primary);margin-right:8px;"></i>All Payment Records</span>
+    <button onclick="exportTableCSV('rev-table','full-report.csv')" class="btn btn-secondary btn-sm"><i class="fas fa-download"></i> Export CSV</button>
+  </div>
+  <div class="table-wrapper">
+    <table class="data-table" id="rev-table">
+      <thead>
+        <tr><th>Invoice</th><th>Member ID</th><th>Amount</th><th>Mode</th><th>Status</th><th>Date</th></tr>
+      </thead>
+      <tbody>
+        {% for p in payments %}
+        <tr>
+          <td>{{ p.invoice_number }}</td>
+          <td>{{ p.member_id }}</td>
+          <td>{{ settings.currency }}{{ p.net_amount|int }}</td>
+          <td>{{ p.payment_mode }}</td>
+          <td>{{ p.payment_status }}</td>
+          <td>{{ p.payment_date }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const isDark = !document.body.classList.contains('light-theme');
+const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+const textColor = isDark ? '#9090AA' : '#5A5A70';
+Chart.defaults.color = textColor;
+Chart.defaults.borderColor = gridColor;
+
+new Chart(document.getElementById('monthlyRevChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ monthly_labels | tojson }},
+    datasets: [{
+      label: 'Revenue',
+      data: {{ monthly_values | tojson }},
+      backgroundColor: 'rgba(255,107,0,0.7)',
+      borderColor: '#FF6B00',
+      borderWidth: 1.5,
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: gridColor } },
+      y: { grid: { color: gridColor }, ticks: { callback: v => '₹' + v.toLocaleString('en-IN') } }
+    }
+  }
+});
+
+const colors = ['#FF6B00','#00D084','#4DA6FF','#FFB347'];
+new Chart(document.getElementById('modeChart'), {
+  type: 'pie',
+  data: {
+    labels: {{ mode_labels | tojson }},
+    datasets: [{ data: {{ mode_values | tojson }}, backgroundColor: colors, borderColor: isDark ? '#12121A' : '#fff', borderWidth: 2 }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 16 } } } }
+});
+
+new Chart(document.getElementById('growthChart'), {
+  type: 'line',
+  data: {
+    labels: {{ growth_labels | tojson }},
+    datasets: [{
+      label: 'New Members',
+      data: {{ growth_values | tojson }},
+      borderColor: '#4DA6FF',
+      backgroundColor: 'rgba(77,166,255,0.1)',
+      borderWidth: 2.5, tension: 0.4, fill: true,
+      pointBackgroundColor: '#4DA6FF', pointRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { x: { grid: { color: gridColor } }, y: { grid: { color: gridColor }, ticks: { stepSize: 1 } } }
+  }
+});
+</script>
+{% endblock %}

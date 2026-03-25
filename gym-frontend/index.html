@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="description" content="PowerFit Gym — Transform your body, transform your life. Premium gym memberships, expert trainers, and state-of-the-art facilities.">
+  <meta name="keywords" content="gym, fitness, membership, personal training, workout, powerfit">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta property="og:title" content="PowerFit Gym">
+  <meta property="og:description" content="Premium gym memberships and expert training.">
+  <meta property="og:type" content="website">
+  <title>PowerFit Gym — Transform Your Body</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark" data-theme="dark">
+
+  <!-- Cookie Banner -->
+  <div id="cookie-banner" class="cookie-banner" role="dialog" aria-label="Cookie consent">
+    <div class="cookie-content">
+      <p><i class="fas fa-cookie-bite"></i> We use cookies to improve your experience. <a href="#" class="cookie-link">Learn more</a></p>
+      <div class="cookie-actions">
+        <button id="cookie-decline" class="btn-cookie-decline">Decline</button>
+        <button id="cookie-accept" class="btn-cookie-accept">Accept All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar" role="navigation" aria-label="Main navigation">
+    <div class="nav-container">
+      <a href="#home" class="nav-logo" aria-label="PowerFit Home">
+        <span class="logo-icon">💪</span>
+        <span class="logo-text">PowerFit</span>
+      </a>
+      <ul class="nav-links" id="nav-links" role="list">
+        <li><a href="#home" class="nav-link active">Home</a></li>
+        <li><a href="#about" class="nav-link">About</a></li>
+        <li><a href="#plans" class="nav-link">Plans</a></li>
+        <li><a href="#locations" class="nav-link">Locations</a></li>
+        <li><a href="#contact" class="nav-link">Contact</a></li>
+        <li><a href="/login" class="btn-nav">Login</a></li>
+      </ul>
+      <div class="nav-right">
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+          <i class="fas fa-moon" id="theme-icon"></i>
+        </button>
+        <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <!-- Hero -->
+    <section class="hero" id="home" aria-label="Hero section">
+      <div class="hero-bg">
+        <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1600&q=75&auto=format" alt="" role="presentation" loading="eager" fetchpriority="high">
+        <div class="hero-overlay"></div>
+      </div>
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          <span>Now Open 24/7</span>
+        </div>
+        <h1 class="hero-title">
+          <span class="title-line">Transform</span>
+          <span class="title-line accent">Your Body.</span>
+          <span class="title-line">Transform Your Life.</span>
+        </h1>
+        <p class="hero-sub">Join 5,000+ members achieving their fitness goals with expert trainers, premium equipment, and a community that pushes you forward.</p>
+        <div class="hero-cta">
+          <a href="#plans" class="btn-primary">Get Started <i class="fas fa-arrow-right"></i></a>
+          <a href="#about" class="btn-ghost">Learn More</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-num" data-target="5000">0</span><span class="stat-plus">+</span>
+            <span class="stat-label">Members</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-num" data-target="50">0</span><span class="stat-plus">+</span>
+            <span class="stat-label">Trainers</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <span class="stat-num" data-target="3">0</span>
+            <span class="stat-label">Locations</span>
+          </div>
+        </div>
+      </div>
+      <a href="#about" class="scroll-down" aria-label="Scroll down">
+        <i class="fas fa-chevron-down"></i>
+      </a>
+    </section>
+
+    <!-- About -->
+    <section class="about section" id="about" aria-label="About section">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Why PowerFit</span>
+          <h2 class="section-title">Built for <span class="accent">Champions</span></h2>
+          <p class="section-sub">Everything you need to reach your peak performance — under one roof.</p>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card" data-animate>
+            <div class="feature-icon"><i class="fas fa-dumbbell"></i></div>
+            <h3>Premium Equipment</h3>
+            <p>State-of-the-art machines and free weights updated every year.</p>
+          </div>
+          <div class="feature-card" data-animate>
+            <div class="feature-icon"><i class="fas fa-user-tie"></i></div>
+            <h3>Expert Trainers</h3>
+            <p>Certified personal trainers with 5+ years of experience each.</p>
+          </div>
+          <div class="feature-card" data-animate>
+            <div class="feature-icon"><i class="fas fa-clock"></i></div>
+            <h3>Open 24/7</h3>
+            <p>Train on your schedule — early morning or late night, we're open.</p>
+          </div>
+          <div class="feature-card" data-animate>
+            <div class="feature-icon"><i class="fas fa-spa"></i></div>
+            <h3>Recovery Zone</h3>
+            <p>Sauna, steam room, and ice bath for complete recovery.</p>
+          </div>
+          <div class="feature-card" data-animate>
+            <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
+            <h3>Member App</h3>
+            <p>Track workouts, book classes, and manage your membership online.</p>
+          </div>
+          <div class="feature-card" data-animate>
+            <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+            <h3>Safe & Clean</h3>
+            <p>Sanitized equipment, CCTV, and secure access for all members.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Plans -->
+    <section class="plans section" id="plans" aria-label="Membership plans">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Pricing</span>
+          <h2 class="section-title">Choose Your <span class="accent">Plan</span></h2>
+          <p class="section-sub">Flexible plans for every goal and budget. No hidden fees.</p>
+        </div>
+        <div class="plans-toggle">
+          <button class="toggle-btn active" data-period="monthly">Monthly</button>
+          <button class="toggle-btn" data-period="yearly">Yearly <span class="save-badge">Save 20%</span></button>
+        </div>
+        <div class="plans-grid">
+          <div class="plan-card" data-animate>
+            <div class="plan-header">
+              <span class="plan-name">Starter</span>
+              <div class="plan-price">
+                <span class="currency">₹</span>
+                <span class="amount monthly-price">999</span>
+                <span class="amount yearly-price" style="display:none">799</span>
+                <span class="period">/mo</span>
+              </div>
+            </div>
+            <ul class="plan-features">
+              <li><i class="fas fa-check"></i> Gym Access (6am–10pm)</li>
+              <li><i class="fas fa-check"></i> Basic Equipment</li>
+              <li><i class="fas fa-check"></i> Locker Room</li>
+              <li><i class="fas fa-times muted"></i> Personal Trainer</li>
+              <li><i class="fas fa-times muted"></i> Group Classes</li>
+              <li><i class="fas fa-times muted"></i> Recovery Zone</li>
+            </ul>
+            <a href="#contact" class="btn-plan">Get Started</a>
+          </div>
+          <div class="plan-card popular" data-animate>
+            <div class="popular-badge">Most Popular</div>
+            <div class="plan-header">
+              <span class="plan-name">Pro</span>
+              <div class="plan-price">
+                <span class="currency">₹</span>
+                <span class="amount monthly-price">1999</span>
+                <span class="amount yearly-price" style="display:none">1599</span>
+                <span class="period">/mo</span>
+              </div>
+            </div>
+            <ul class="plan-features">
+              <li><i class="fas fa-check"></i> 24/7 Gym Access</li>
+              <li><i class="fas fa-check"></i> All Equipment</li>
+              <li><i class="fas fa-check"></i> Locker Room</li>
+              <li><i class="fas fa-check"></i> 2 PT Sessions/mo</li>
+              <li><i class="fas fa-check"></i> Group Classes</li>
+              <li><i class="fas fa-times muted"></i> Recovery Zone</li>
+            </ul>
+            <a href="#contact" class="btn-plan btn-plan-primary">Get Started</a>
+          </div>
+          <div class="plan-card" data-animate>
+            <div class="plan-header">
+              <span class="plan-name">Elite</span>
+              <div class="plan-price">
+                <span class="currency">₹</span>
+                <span class="amount monthly-price">3499</span>
+                <span class="amount yearly-price" style="display:none">2799</span>
+                <span class="period">/mo</span>
+              </div>
+            </div>
+            <ul class="plan-features">
+              <li><i class="fas fa-check"></i> 24/7 Gym Access</li>
+              <li><i class="fas fa-check"></i> All Equipment</li>
+              <li><i class="fas fa-check"></i> Locker Room</li>
+              <li><i class="fas fa-check"></i> Unlimited PT Sessions</li>
+              <li><i class="fas fa-check"></i> Group Classes</li>
+              <li><i class="fas fa-check"></i> Recovery Zone</li>
+            </ul>
+            <a href="#contact" class="btn-plan">Get Started</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Locations -->
+    <section class="locations section" id="locations" aria-label="Branch locations">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Find Us</span>
+          <h2 class="section-title">Our <span class="accent">Locations</span></h2>
+          <p class="section-sub">3 premium locations across the city — always close to you.</p>
+        </div>
+        <div class="locations-grid">
+          <div class="location-card" data-animate>
+            <div class="location-img">
+              <img src="https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=600&q=70&auto=format" alt="PowerFit Downtown branch" loading="lazy">
+            </div>
+            <div class="location-info">
+              <h3>Downtown</h3>
+              <p><i class="fas fa-map-marker-alt"></i> 12 MG Road, City Centre</p>
+              <p><i class="fas fa-clock"></i> Open 24/7</p>
+              <p><i class="fas fa-phone"></i> +91 98765 43210</p>
+              <a href="https://maps.google.com" target="_blank" rel="noopener" class="btn-location">
+                <i class="fas fa-directions"></i> Get Directions
+              </a>
+            </div>
+          </div>
+          <div class="location-card" data-animate>
+            <div class="location-img">
+              <img src="https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=600&q=70&auto=format" alt="PowerFit Westside branch" loading="lazy">
+            </div>
+            <div class="location-info">
+              <h3>Westside</h3>
+              <p><i class="fas fa-map-marker-alt"></i> 45 West Avenue, Andheri</p>
+              <p><i class="fas fa-clock"></i> 5am – 11pm</p>
+              <p><i class="fas fa-phone"></i> +91 98765 43211</p>
+              <a href="https://maps.google.com" target="_blank" rel="noopener" class="btn-location">
+                <i class="fas fa-directions"></i> Get Directions
+              </a>
+            </div>
+          </div>
+          <div class="location-card" data-animate>
+            <div class="location-img">
+              <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=70&auto=format" alt="PowerFit Northpark branch" loading="lazy">
+            </div>
+            <div class="location-info">
+              <h3>Northpark</h3>
+              <p><i class="fas fa-map-marker-alt"></i> 8 Park Street, Bandra</p>
+              <p><i class="fas fa-clock"></i> 6am – 10pm</p>
+              <p><i class="fas fa-phone"></i> +91 98765 43212</p>
+              <a href="https://maps.google.com" target="_blank" rel="noopener" class="btn-location">
+                <i class="fas fa-directions"></i> Get Directions
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section class="contact section" id="contact" aria-label="Contact form">
+      <div class="container">
+        <div class="contact-grid">
+          <div class="contact-info" data-animate>
+            <span class="section-tag">Get In Touch</span>
+            <h2 class="section-title">Start Your <span class="accent">Journey</span></h2>
+            <p class="section-sub">Fill out the form and our team will get back to you within 24 hours.</p>
+            <div class="contact-details">
+              <div class="contact-item">
+                <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+                <div><strong>Email</strong><br>hello@powerfit.com</div>
+              </div>
+              <div class="contact-item">
+                <div class="contact-icon"><i class="fas fa-phone"></i></div>
+                <div><strong>Phone</strong><br>+91 98765 43210</div>
+              </div>
+              <div class="contact-item">
+                <div class="contact-icon"><i class="fab fa-whatsapp"></i></div>
+                <div><strong>WhatsApp</strong><br>Chat with us instantly</div>
+              </div>
+            </div>
+          </div>
+          <div class="contact-form-wrap" data-animate>
+            <form id="contact-form" class="contact-form" novalidate>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="name">Full Name <span class="required">*</span></label>
+                  <input type="text" id="name" name="name" placeholder="John Doe" autocomplete="name" required minlength="2" maxlength="100">
+                  <span class="field-error" id="name-error"></span>
+                </div>
+                <div class="form-group">
+                  <label for="phone">Phone <span class="required">*</span></label>
+                  <input type="tel" id="phone" name="phone" placeholder="+91 98765 43210" autocomplete="tel" required>
+                  <span class="field-error" id="phone-error"></span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="email">Email <span class="required">*</span></label>
+                <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+                <span class="field-error" id="email-error"></span>
+              </div>
+              <div class="form-group">
+                <label for="plan">Interested Plan</label>
+                <select id="plan" name="plan">
+                  <option value="">Select a plan</option>
+                  <option value="starter">Starter — ₹999/mo</option>
+                  <option value="pro">Pro — ₹1999/mo</option>
+                  <option value="elite">Elite — ₹3499/mo</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="message">Message</label>
+                <textarea id="message" name="message" rows="4" placeholder="Tell us about your fitness goals..." maxlength="500"></textarea>
+                <span class="char-count" id="char-count">0/500</span>
+              </div>
+              <button type="submit" class="btn-submit" id="submit-btn">
+                <span class="btn-text">Send Message</span>
+                <span class="btn-loader" style="display:none"><i class="fas fa-spinner fa-spin"></i></span>
+              </button>
+              <div id="form-success" class="form-success" style="display:none">
+                <i class="fas fa-check-circle"></i> Message sent! We'll contact you within 24 hours.
+              </div>
+              <div id="form-error" class="form-error-msg" style="display:none">
+                <i class="fas fa-exclamation-circle"></i> Something went wrong. Please try again.
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="#home" class="nav-logo">
+            <span class="logo-icon">💪</span>
+            <span class="logo-text">PowerFit</span>
+          </a>
+          <p>Premium gym experience for everyone. Transform your body, transform your life.</p>
+          <div class="social-links">
+            <a href="#" aria-label="Instagram" rel="noopener"><i class="fab fa-instagram"></i></a>
+            <a href="#" aria-label="Facebook" rel="noopener"><i class="fab fa-facebook"></i></a>
+            <a href="#" aria-label="YouTube" rel="noopener"><i class="fab fa-youtube"></i></a>
+            <a href="#" aria-label="Twitter" rel="noopener"><i class="fab fa-twitter"></i></a>
+          </div>
+        </div>
+        <div class="footer-links">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#plans">Plans</a></li>
+            <li><a href="#locations">Locations</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+        </div>
+        <div class="footer-links">
+          <h4>Support</h4>
+          <ul>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Refund Policy</a></li>
+            <li><a href="/login">Member Login</a></li>
+          </ul>
+        </div>
+        <div class="footer-links">
+          <h4>Hours</h4>
+          <ul>
+            <li>Downtown: 24/7</li>
+            <li>Westside: 5am–11pm</li>
+            <li>Northpark: 6am–10pm</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© <span id="year"></span> PowerFit Gym. All rights reserved.</p>
+        <p>Made with <i class="fas fa-heart" style="color:#FF6B00"></i> for fitness lovers</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- WhatsApp Button -->
+  <a href="https://wa.me/919876543210?text=Hi%20PowerFit!%20I%27m%20interested%20in%20joining." 
+     class="whatsapp-btn" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <i class="fab fa-whatsapp"></i>
+    <span class="whatsapp-tooltip">Chat with us!</span>
+  </a>
+
+  <!-- Back to Top -->
+  <button class="back-to-top" id="back-to-top" aria-label="Back to top">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <script src="app.js"></script>
+</body>
+</html>

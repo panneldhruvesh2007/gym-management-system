@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="description" content="{% block meta_desc %}PowerFit Gym Management System — Admin Panel{% endblock %}">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0A0A0F">
+  <title>{% block title %}Admin{% endblock %} — {{ settings.gym_name if settings else 'PowerFit' }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  {% block head %}{% endblock %}
+</head>
+<body class="{% if settings and settings.theme == 'light' %}light-theme{% endif %}">
+
+<div class="flash-messages">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">
+        <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% elif category == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endwith %}
+</div>
+
+<div class="sidebar-overlay"></div>
+
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon" style="{% if settings and settings.gym_logo %}padding:0;{% endif %}">
+        {% if settings and settings.gym_logo %}
+          <img src="{{ url_for('static', filename='uploads/' + settings.gym_logo) }}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">
+        {% else %}
+          💪
+        {% endif %}
+      </div>
+      <div>
+        <div class="brand-text">{{ settings.gym_name if settings else 'PowerFit' }}</div>
+        <div class="brand-tagline">Admin Panel</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">Overview</div>
+      <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+        <i class="fas fa-tachometer-alt"></i> Dashboard
+      </a>
+
+      <div class="nav-section">Members</div>
+      <a href="{{ url_for('members') }}" class="nav-item {% if request.endpoint in ['members','view_member','edit_member'] %}active{% endif %}">
+        <i class="fas fa-users"></i> Members
+      </a>
+      <a href="{{ url_for('add_member') }}" class="nav-item {% if request.endpoint == 'add_member' %}active{% endif %}">
+        <i class="fas fa-user-plus"></i> Add Member
+      </a>
+      <a href="{{ url_for('admin_attendance') }}" class="nav-item {% if request.endpoint in ['admin_attendance','toggle_attendance'] %}active{% endif %}">
+        <i class="fas fa-clipboard-check"></i> Attendance
+      </a>
+
+      <div class="nav-section">Finance</div>
+      <a href="{{ url_for('payments') }}" class="nav-item {% if request.endpoint == 'payments' %}active{% endif %}">
+        <i class="fas fa-credit-card"></i> Payments
+      </a>
+      <a href="{{ url_for('reports') }}" class="nav-item {% if request.endpoint == 'reports' %}active{% endif %}">
+        <i class="fas fa-chart-bar"></i> Reports
+      </a>
+
+      <div class="nav-section">Gym</div>
+      <a href="{{ url_for('trainers') }}" class="nav-item {% if request.endpoint in ['trainers','add_trainer','edit_trainer'] %}active{% endif %}">
+        <i class="fas fa-dumbbell"></i> Trainers
+      </a>
+      <a href="{{ url_for('plans') }}" class="nav-item {% if request.endpoint == 'plans' %}active{% endif %}">
+        <i class="fas fa-list-alt"></i> Plans
+      </a>
+
+      <div class="nav-section">Member Support</div>
+      <a href="{{ url_for('admin_complaints') }}" class="nav-item {% if request.endpoint == 'admin_complaints' %}active{% endif %}">
+        <i class="fas fa-exclamation-circle"></i> Complaints
+        {% if open_complaints > 0 %}
+        <span style="background:var(--danger);color:white;font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:auto;">{{ open_complaints }}</span>
+        {% endif %}
+      </a>
+      <a href="{{ url_for('admin_messages') }}" class="nav-item {% if request.endpoint == 'admin_messages' %}active{% endif %}">
+        <i class="fas fa-envelope"></i> Messages
+        {% if unread_messages > 0 %}
+        <span style="background:var(--danger);color:white;font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:auto;">{{ unread_messages }}</span>
+        {% endif %}
+      </a>
+      <a href="{{ url_for('announcements') }}" class="nav-item {% if request.endpoint in ['announcements','add_announcement','edit_announcement'] %}active{% endif %}">
+        <i class="fas fa-bullhorn"></i> Announcements
+      </a>
+
+      <div class="nav-section">Admin</div>
+      <a href="{{ url_for('settings') }}" class="nav-item {% if request.endpoint == 'settings' %}active{% endif %}">
+        <i class="fas fa-cog"></i> Settings
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-badge">
+        <div class="user-avatar">{{ session.full_name[0] if session.full_name else 'A' }}</div>
+        <div class="user-info">
+          <div class="user-name">{{ session.full_name }}</div>
+          <div class="user-role">Administrator</div>
+        </div>
+        <a href="{{ url_for('logout') }}" style="color:var(--danger);font-size:14px;padding:4px;">
+          <i class="fas fa-sign-out-alt"></i>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <button class="topbar-btn hamburger"><i class="fas fa-bars"></i></button>
+      <h1 class="topbar-title">{% block page_title %}Dashboard{% endblock %}</h1>
+      <div class="topbar-right">
+        <button class="topbar-btn theme-toggle" onclick="toggleTheme()"><i class="fas fa-sun"></i></button>
+        <a href="{{ url_for('admin_complaints') }}" class="topbar-btn" data-tooltip="Complaints" style="position:relative;">
+          <i class="fas fa-exclamation-circle"></i>
+          {% if open_complaints > 0 %}
+          <span style="position:absolute;top:6px;right:6px;width:8px;height:8px;background:var(--danger);border-radius:50%;border:2px solid var(--bg-primary);"></span>
+          {% endif %}
+        </a>
+        <a href="{{ url_for('admin_messages') }}" class="topbar-btn" data-tooltip="Messages" style="position:relative;">
+          <i class="fas fa-envelope"></i>
+          {% if unread_messages > 0 %}
+          <span style="position:absolute;top:6px;right:6px;width:8px;height:8px;background:var(--danger);border-radius:50%;border:2px solid var(--bg-primary);"></span>
+          {% endif %}
+        </a>
+        <a href="{{ url_for('add_member') }}" class="btn btn-primary btn-sm">
+          <i class="fas fa-plus"></i> New Member
+        </a>
+        <div class="dropdown">
+          <button class="topbar-btn" data-dropdown-trigger style="display:flex;align-items:center;gap:10px;padding:6px 12px;overflow:visible;max-width:none;">
+            <div style="width:32px;height:32px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:white;overflow:hidden;flex-shrink:0;">
+              {% if settings and settings.gym_logo %}
+                <img src="{{ url_for('static', filename='uploads/' + settings.gym_logo) }}" style="width:100%;height:100%;object-fit:cover;">
+              {% else %}
+                {{ session.full_name[0] if session.full_name else 'A' }}
+              {% endif %}
+            </div>
+            <div class="admin-name-text" style="display:flex;flex-direction:column;align-items:flex-start;line-height:1.3;min-width:0;">
+              <span style="font-size:13px;font-weight:600;color:var(--text-primary);white-space:nowrap;">{{ session.full_name or 'Admin' }}</span>
+              <span style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">Administrator</span>
+            </div>
+            <i class="fas fa-chevron-down admin-name-text" style="font-size:10px;color:var(--text-muted);margin-left:4px;flex-shrink:0;"></i>
+          </button>
+          <div class="dropdown-menu">
+            <div style="padding:12px 16px;border-bottom:1px solid var(--border);margin-bottom:8px;">
+              <div style="font-weight:600;color:var(--text-primary);font-size:14px;">{{ session.full_name or 'Admin' }}</div>
+              <div style="font-size:11px;color:var(--text-muted);">{{ session.username or 'admin' }}</div>
+            </div>
+            <a href="{{ url_for('settings') }}" class="dropdown-item"><i class="fas fa-cog"></i> Settings</a>
+            <a href="{{ url_for('logout') }}" class="dropdown-item danger"><i class="fas fa-sign-out-alt"></i> Logout</a>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div class="page-content">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+  // Auto-inject CSRF token into all POST forms
+  (function() {
+    var token = "{{ csrf_token() }}";
+    document.querySelectorAll('form[method="POST"], form[method="post"]').forEach(function(form) {
+      if (!form.querySelector('input[name="csrf_token"]')) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'csrf_token';
+        input.value = token;
+        form.appendChild(input);
+      }
+    });
+  })();
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

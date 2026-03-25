@@ -1,0 +1,204 @@
+{% extends 'member_base.html' %}
+{% block title %}My Dashboard{% endblock %}
+{% block page_title %}My Dashboard{% endblock %}
+
+{% block content %}
+{% set exp_date = member.expiry_date %}
+
+<!-- Expiry Warning Banner -->
+{% if member.membership_status == 'expired' %}
+<div class="alert alert-danger" style="margin-bottom:24px;display:flex;align-items:center;gap:12px;">
+  <i class="fas fa-times-circle" style="font-size:24px;"></i>
+  <div style="flex:1;">
+    <div style="font-weight:700;font-size:15px;margin-bottom:4px;">
+      ❌ Your Membership Has Expired
+    </div>
+    <div style="font-size:13px;opacity:0.9;">
+      Your membership expired on {{ member.expiry_date }}. Please renew to continue using gym facilities. Contact us at {{ settings.gym_phone }} or visit the gym.
+    </div>
+  </div>
+  <a href="{{ url_for('member_contact') }}" class="btn btn-danger btn-sm">
+    <i class="fas fa-redo"></i> Renew Now
+  </a>
+</div>
+{% elif days_left_num <= 7 and days_left_num >= 0 and member.membership_status == 'active' %}
+<div class="alert alert-warning" style="margin-bottom:24px;display:flex;align-items:center;gap:12px;animation:pulse 2s ease-in-out infinite;">
+  <i class="fas fa-exclamation-triangle" style="font-size:24px;"></i>
+  <div style="flex:1;">
+    <div style="font-weight:700;font-size:15px;margin-bottom:4px;">
+      {% if days_left_num == 0 %}
+        ⚠️ Your Membership Expires Today!
+      {% elif days_left_num == 1 %}
+        ⚠️ Your Membership Expires Tomorrow!
+      {% else %}
+        ⏰ Your Membership Expires in {{ days_left_num }} Days
+      {% endif %}
+    </div>
+    <div style="font-size:13px;opacity:0.9;">
+      Please renew your membership to continue enjoying our services. Contact us at {{ settings.gym_phone }} or visit the gym.
+    </div>
+  </div>
+  <a href="{{ url_for('member_contact') }}" class="btn btn-primary btn-sm">
+    <i class="fas fa-envelope"></i> Contact Gym
+  </a>
+</div>
+{% elif member.membership_status == 'suspended' %}
+<div class="alert alert-danger" style="margin-bottom:24px;display:flex;align-items:center;gap:12px;">
+  <i class="fas fa-ban" style="font-size:24px;"></i>
+  <div style="flex:1;">
+    <div style="font-weight:700;font-size:15px;margin-bottom:4px;">
+      🚫 Your Account is Suspended
+    </div>
+    <div style="font-size:13px;opacity:0.9;">
+      Your membership has been suspended. Please check your messages for details and contact the gym administration.
+    </div>
+  </div>
+  <a href="{{ url_for('member_contact') }}" class="btn btn-danger btn-sm">
+    <i class="fas fa-phone"></i> Contact Admin
+  </a>
+</div>
+{% endif %}
+
+<!-- Membership Card -->
+<div class="membership-card" style="margin-bottom:24px;">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
+    <div>
+      <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;opacity:0.6;margin-bottom:6px;">Membership Card</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:1px;margin-bottom:4px;">{{ member.full_name }}</div>
+      <div style="font-size:14px;opacity:0.7;margin-bottom:16px;">{{ member.member_id }} · {{ member.gender or '' }}</div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;">
+        <div>
+          <div style="font-size:10px;opacity:0.5;text-transform:uppercase;letter-spacing:1px;">Plan</div>
+          <div style="font-size:14px;font-weight:600;color:#4DA6FF;">{{ plan.plan_name if plan else '—' }}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;opacity:0.5;text-transform:uppercase;letter-spacing:1px;">Valid Until</div>
+          <div style="font-size:14px;font-weight:600;">{{ member.expiry_date }}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;opacity:0.5;text-transform:uppercase;letter-spacing:1px;">Trainer</div>
+          <div style="font-size:14px;font-weight:600;">{{ trainer.full_name if trainer else 'Not Assigned' }}</div>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:right;">
+      <span class="badge {% if member.membership_status == 'active' %}badge-active{% else %}badge-expired{% endif %}" style="font-size:12px;padding:6px 14px;">
+        {{ member.membership_status | upper }}
+      </span>
+      {% if days_left_num >= 0 %}
+      <div style="margin-top:12px;font-family:'Bebas Neue',sans-serif;font-size:42px;color:{% if days_left_num < 7 %}#FF4444{% else %}#4DA6FF{% endif %};line-height:1;">{{ days_left_num }}</div>
+      <div style="font-size:11px;opacity:0.6;text-transform:uppercase;letter-spacing:1px;">Days Left</div>
+      {% else %}
+      <div style="margin-top:12px;color:#FF4444;font-weight:700;">EXPIRED</div>
+      {% endif %}
+    </div>
+  </div>
+  {% if days_left_num >= 0 and plan %}
+  <div style="margin-top:20px;">
+    <div style="display:flex;justify-content:space-between;font-size:11px;opacity:0.5;margin-bottom:6px;">
+      <span>Membership Progress</span>
+      <span>{{ [days_left_num, 0]|max }} / {{ plan.duration_months * 30 }} days remaining</span>
+    </div>
+    <div style="background:rgba(255,255,255,0.1);border-radius:4px;height:6px;">
+      {% set pct = [(days_left_num / (plan.duration_months * 30) * 100), 100]|min %}
+      <div style="height:100%;width:{{ pct }}%;background:{% if pct < 15 %}#FF4444{% elif pct < 30 %}#FFB347{% else %}#4DA6FF{% endif %};border-radius:4px;transition:width 1s;"></div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Stats Row -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-bottom:24px;">
+  <div class="member-stat">
+    <div class="member-stat-val">{{ month_attendance }}</div>
+    <div class="member-stat-lbl">This Month</div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Visits</div>
+  </div>
+  <div class="member-stat">
+    <div class="member-stat-val">{{ attendance|length }}</div>
+    <div class="member-stat-lbl">Total Visits</div>
+  </div>
+  <div class="member-stat">
+    <div class="member-stat-val">{{ total_payments }}</div>
+    <div class="member-stat-lbl">Payments</div>
+    <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">All Time</div>
+  </div>
+  <div class="member-stat">
+    <div class="member-stat-val" style="color:{% if open_replies > 0 %}var(--warning){% else %}var(--success){% endif %};">{{ open_replies }}</div>
+    <div class="member-stat-lbl">New Replies</div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div style="margin-bottom:24px;">
+  <div style="font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:14px;">Quick Actions</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;">
+    <a href="{{ url_for('member_attendance') }}" class="quick-action">
+      <i class="fas fa-calendar-check"></i><span>Attendance</span>
+    </a>
+    <a href="{{ url_for('member_invoices') }}" class="quick-action">
+      <i class="fas fa-file-invoice-dollar"></i><span>My Invoices</span>
+    </a>
+    <a href="{{ url_for('member_complaints') }}" class="quick-action">
+      <i class="fas fa-exclamation-circle"></i><span>Complaints</span>
+    </a>
+    <a href="{{ url_for('member_contact') }}" class="quick-action">
+      <i class="fas fa-envelope"></i><span>Contact</span>
+    </a>
+    <a href="{{ url_for('member_profile') }}" class="quick-action">
+      <i class="fas fa-user-cog"></i><span>Profile</span>
+    </a>
+  </div>
+</div>
+
+<!-- Recent Payments & Trainer Info -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;" class="grid-2-collapse">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-receipt" style="color:#4DA6FF;margin-right:8px;"></i>Recent Payments</span>
+      <a href="{{ url_for('member_invoices') }}" class="btn btn-secondary btn-sm">View All</a>
+    </div>
+    <div>
+      {% for pay in payments %}
+      <div class="invoice-item">
+        <div class="invoice-icon"><i class="fas fa-receipt"></i></div>
+        <div style="flex:1;">
+          <div style="font-weight:600;color:var(--text-primary);font-size:13px;">{{ pay.invoice_number }}</div>
+          <div style="font-size:12px;color:var(--text-muted);">{{ pay.payment_date }} · {{ pay.payment_mode }}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-weight:700;color:var(--success);">₹{{ pay.net_amount|int }}</div>
+          <a href="{{ url_for('view_invoice', payment_id=pay.id) }}" style="font-size:11px;color:#4DA6FF;">Download</a>
+        </div>
+      </div>
+      {% else %}
+      <div style="padding:24px;text-align:center;color:var(--text-muted);">No payments yet</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-title"><i class="fas fa-dumbbell" style="color:#4DA6FF;margin-right:8px;"></i>My Trainer</span></div>
+    <div class="card-body">
+      {% if trainer %}
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#4DA6FF,#9B59B6);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:white;margin:0 auto 12px;">
+          {% if trainer.photo %}
+            <img src="{{ url_for('static',filename='uploads/trainers/'+trainer.photo) }}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+          {% else %}{{ trainer.full_name[0] }}{% endif %}
+        </div>
+        <div style="font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;">{{ trainer.full_name }}</div>
+        <div style="color:#4DA6FF;font-size:13px;margin-bottom:8px;">{{ trainer.specialization or '' }}</div>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.6;">{{ (trainer.bio or '')[:120] }}{% if trainer.bio and trainer.bio|length > 120 %}...{% endif %}</div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+        <a href="tel:{{ trainer.phone or '' }}" class="btn btn-secondary btn-sm"><i class="fas fa-phone"></i> Call</a>
+        <a href="{{ url_for('member_contact') }}" class="btn btn-outline btn-sm" style="border-color:#4DA6FF;color:#4DA6FF;"><i class="fas fa-envelope"></i> Message</a>
+      </div>
+      {% else %}
+      <div class="empty-state"><i class="fas fa-dumbbell"></i><h3>No Trainer</h3><p>Contact the gym to get assigned a trainer.</p></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

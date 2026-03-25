@@ -1,0 +1,258 @@
+/* ══════════════════════════════════
+   MEMBER PORTAL STYLES
+   ══════════════════════════════════ */
+
+/* Member sidebar accent */
+.member-sidebar .nav-item.active {
+  color: #4DA6FF;
+  background: rgba(77,166,255,0.1);
+  border-left-color: #4DA6FF;
+}
+.member-sidebar .brand-icon {
+  background: linear-gradient(135deg, #4DA6FF, #9B59B6);
+}
+
+/* Membership card */
+.membership-card {
+  background: linear-gradient(135deg, #0D1B3E 0%, #1a2d6e 50%, #0D1B3E 100%);
+  border: 1px solid rgba(77,166,255,0.3);
+  border-radius: 16px;
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+  color: white;
+}
+.membership-card::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 160px; height: 160px;
+  background: radial-gradient(circle, rgba(77,166,255,0.3) 0%, transparent 70%);
+}
+.membership-card::after {
+  content: '💪';
+  position: absolute;
+  bottom: 16px; right: 20px;
+  font-size: 64px;
+  opacity: 0.08;
+}
+
+/* Attendance calendar */
+.att-calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.att-day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--bg-card2);
+  border: 1px solid var(--border-light);
+  color: var(--text-muted);
+  cursor: default;
+}
+.att-day.present {
+  background: rgba(0,208,132,0.15);
+  border-color: rgba(0,208,132,0.3);
+  color: var(--success);
+}
+.att-day.today {
+  border-color: #4DA6FF;
+  color: #4DA6FF;
+}
+.att-day.header {
+  background: transparent;
+  border: none;
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Streak badge */
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(255,107,0,0.15), rgba(255,179,71,0.15));
+  border: 1px solid rgba(255,107,0,0.3);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--secondary);
+}
+
+/* Complaint card */
+.complaint-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  padding: 20px;
+  transition: var(--transition);
+  border-left: 4px solid var(--border-light);
+}
+.complaint-card.open      { border-left-color: var(--warning); }
+.complaint-card.in_progress { border-left-color: var(--info); }
+.complaint-card.resolved  { border-left-color: var(--success); }
+
+/* Message thread */
+.msg-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.msg-bubble {
+  max-width: 80%;
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.msg-bubble.sent {
+  align-self: flex-end;
+  background: rgba(77,166,255,0.12);
+  border: 1px solid rgba(77,166,255,0.2);
+  border-radius: 12px 12px 2px 12px;
+}
+.msg-bubble.received {
+  align-self: flex-start;
+  background: var(--bg-card2);
+  border: 1px solid var(--border-light);
+  border-radius: 12px 12px 12px 2px;
+}
+.msg-meta {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
+
+/* Invoice list item */
+.invoice-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border-light);
+  transition: var(--transition);
+}
+.invoice-item:hover { background: rgba(77,166,255,0.04); }
+.invoice-item:last-child { border-bottom: none; }
+.invoice-icon {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  background: rgba(77,166,255,0.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  color: #4DA6FF;
+  flex-shrink: 0;
+}
+
+/* Stat mini cards for member */
+.member-stat {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+  transition: var(--transition);
+}
+.member-stat:hover { border-color: #4DA6FF; transform: translateY(-2px); }
+.member-stat-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px;
+  color: #4DA6FF;
+  line-height: 1;
+}
+.member-stat-lbl {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+
+/* Quick action buttons for member */
+.quick-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--text-secondary);
+  transition: var(--transition);
+  text-align: center;
+}
+.quick-action:hover {
+  border-color: #4DA6FF;
+  color: #4DA6FF;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(77,166,255,0.15);
+}
+.quick-action i {
+  font-size: 28px;
+  color: #4DA6FF;
+}
+.quick-action span {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Enhanced Calendar Styles */
+.attendance-calendar {
+  user-select: none;
+}
+
+.attendance-calendar > div > div:not(:empty) {
+  cursor: default;
+  transition: all 0.2s ease;
+}
+
+.attendance-calendar > div > div:not(:empty):hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Calendar day with attendance */
+.calendar-day-present {
+  background: rgba(0,208,132,0.15);
+  border: 2px solid rgba(0,208,132,0.3);
+  color: var(--success);
+  font-weight: 700;
+}
+
+.calendar-day-present:hover {
+  background: rgba(0,208,132,0.25);
+  border-color: rgba(0,208,132,0.5);
+}
+
+/* Today indicator */
+.calendar-day-today {
+  border: 2px solid #4DA6FF;
+  background: rgba(77,166,255,0.1);
+  color: #4DA6FF;
+  font-weight: 700;
+}
+
+/* Calendar responsive */
+@media (max-width: 768px) {
+  .attendance-calendar > div {
+    gap: 4px;
+  }
+  
+  .attendance-calendar > div > div {
+    font-size: 12px;
+  }
+}

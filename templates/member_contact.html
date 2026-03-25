@@ -1,0 +1,180 @@
+{% extends 'member_base.html' %}
+{% block title %}Contact{% endblock %}
+{% block page_title %}Contact Gym & Trainer{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;" class="grid-2-collapse">
+
+  <!-- Compose Message -->
+  <div>
+    <!-- Gym Info Card -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-header"><span class="card-title"><i class="fas fa-building" style="color:#4DA6FF;margin-right:8px;"></i>Gym Contact</span></div>
+      <div class="card-body">
+        {% for icon, label, value in [
+          ('fas fa-map-marker-alt', 'Address', gym_settings.gym_address),
+          ('fas fa-phone', 'Phone', gym_settings.gym_phone),
+          ('fas fa-envelope', 'Email', gym_settings.gym_email),
+          ('fas fa-globe', 'Website', gym_settings.gym_website),
+        ] %}
+        <div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-light);">
+          <i class="{{ icon }}" style="color:#4DA6FF;width:16px;margin-top:2px;flex-shrink:0;"></i>
+          <div>
+            <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">{{ label }}</div>
+            <div style="font-size:13px;color:var(--text-primary);margin-top:1px;">{{ value or '—' }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% if trainer %}
+    <!-- Trainer Card -->
+    <div class="card" style="margin-bottom:20px;">
+      <div class="card-header"><span class="card-title"><i class="fas fa-dumbbell" style="color:#4DA6FF;margin-right:8px;"></i>My Trainer</span></div>
+      <div class="card-body">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+          <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#4DA6FF,#9B59B6);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:white;flex-shrink:0;">
+            {{ trainer.full_name[0] }}
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:16px;color:var(--text-primary);">{{ trainer.full_name }}</div>
+            <div style="color:#4DA6FF;font-size:13px;">{{ trainer.specialization }}</div>
+            <div style="font-size:12px;color:var(--text-muted);">{{ trainer.experience_years or 0 }} years experience</div>
+          </div>
+        </div>
+        <a href="tel:{{ trainer.phone or '' }}" class="btn btn-secondary" style="width:100%;justify-content:center;">
+          <i class="fas fa-phone"></i> Call {{ trainer.phone or 'N/A' }}
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Send Message Form -->
+    <div class="card">
+      <div class="card-header"><span class="card-title"><i class="fas fa-paper-plane" style="color:#4DA6FF;margin-right:8px;"></i>Send a Message</span></div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('member_contact') }}">
+          <div class="form-group">
+            <label class="form-label">Send To</label>
+            <div style="display:flex;gap:10px;">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;padding:12px;background:var(--bg-card2);border:1px solid var(--border-light);border-radius:8px;transition:var(--transition);" id="to-gym-label">
+                <input type="radio" name="to" value="gym" id="to-gym" checked style="accent-color:#4DA6FF;"> 
+                <span style="font-size:13px;font-weight:600;">🏢 Gym Team</span>
+              </label>
+              {% if trainer %}
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1;padding:12px;background:var(--bg-card2);border:1px solid var(--border-light);border-radius:8px;transition:var(--transition);" id="to-trainer-label">
+                <input type="radio" name="to" value="trainer" id="to-trainer" style="accent-color:#4DA6FF;">
+                <span style="font-size:13px;font-weight:600;">🏋️ My Trainer</span>
+              </label>
+              {% endif %}
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Subject *</label>
+            <input type="text" name="subject" class="form-control" placeholder="e.g. Diet plan request, Schedule query..." required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Message *</label>
+            <textarea name="message" class="form-control" rows="5" placeholder="Type your message here..." required minlength="10"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" id="msg-submit-btn" style="width:100%;justify-content:center;padding:14px;">
+            <i class="fas fa-paper-plane"></i> Send Message
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message Thread -->
+  <div>
+    <div style="font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:14px;">
+      Message History ({{ messages|length }})
+    </div>
+
+    {% if messages %}
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      {% for msg in messages %}
+      <div class="card">
+        <div class="card-header" style="padding:14px 18px;">
+          <div>
+            <div style="font-weight:700;font-size:13px;color:var(--text-primary);">{{ msg.subject }}</div>
+            <div style="font-size:11px;color:var(--text-muted);">
+              {% if msg.status == 'admin_sent' %}
+              <span style="color:var(--primary);"><i class="fas fa-arrow-left"></i> From:</span> <strong style="color:var(--primary);">Gym Admin</strong>
+              {% else %}
+              <span style="color:#4DA6FF;"><i class="fas fa-arrow-right"></i> To:</span> <strong style="color:#4DA6FF;">{% if msg.to_type == 'trainer' %}My Trainer{% else %}Gym Team{% endif %}</strong>
+              {% endif %}
+              · {{ msg.created_at }}
+            </div>
+          </div>
+          <span class="badge {% if msg.status == 'admin_sent' %}badge-info{% elif msg.status == 'replied' or msg.reply %}badge-active{% else %}badge-pending{% endif %}">
+            {% if msg.status == 'admin_sent' %}<i class="fas fa-envelope"></i> From Admin{% elif msg.status == 'replied' or msg.reply %}<i class="fas fa-reply"></i> Replied{% else %}<i class="fas fa-clock"></i> Sent{% endif %}
+          </span>
+        </div>
+        <div class="card-body" style="padding:16px 18px;">
+          <div class="msg-thread">
+            {% if msg.status == 'admin_sent' %}
+            <!-- Admin sent message to member -->
+            <div class="msg-bubble received">
+              <div style="font-size:10px;color:var(--primary);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">
+                <i class="fas fa-user-shield"></i> Gym Admin
+              </div>
+              {{ msg.message }}
+              <div class="msg-meta">{{ msg.created_at }}</div>
+            </div>
+            {% if msg.reply %}
+            <div class="msg-bubble sent">
+              <div style="font-size:10px;color:rgba(77,166,255,0.7);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">
+                <i class="fas fa-user"></i> You
+              </div>
+              {{ msg.reply }}
+              <div class="msg-meta">{{ msg.updated_at }}</div>
+            </div>
+            {% endif %}
+            {% else %}
+            <!-- Member sent message -->
+            <div class="msg-bubble sent">
+              <div style="font-size:10px;color:rgba(77,166,255,0.7);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">
+                <i class="fas fa-user"></i> You
+              </div>
+              {{ msg.message }}
+              <div class="msg-meta">{{ msg.created_at }}</div>
+            </div>
+            {% if msg.reply %}
+            <div class="msg-bubble received">
+              <div style="font-size:10px;color:var(--success);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">
+                <i class="fas fa-user-shield"></i> {% if msg.to_type == 'trainer' %}Trainer{% else %}Gym Team{% endif %}
+              </div>
+              {{ msg.reply }}
+              <div class="msg-meta">{{ msg.updated_at }}</div>
+            </div>
+            {% endif %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="card">
+      <div class="empty-state" style="padding:40px;">
+        <i class="fas fa-comments"></i>
+        <h3>No Messages Yet</h3>
+        <p>Send a message to the gym team or your trainer using the form.</p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelector('form[action*="contact"]').addEventListener('submit', function() {
+  const btn = document.getElementById('msg-submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+});
+</script>
+{% endblock %}
